@@ -1,0 +1,15 @@
+package universal contains lots of universal common use functions while you dealling with linux systems.
+
+0. check_path_exists
+	check if path is exists, check_path_exists(path), if path is not exists, program exits.
+
+1. make_sure_path_exists
+	check if path is exists, if not exists then create path, make_sure_path_exists(path), if path not exists and not creatable, program exits.
+
+2. check_file_exists
+	check if a single file exists, check_file_exist(input_file), if file is not existed, program exits
+
+3. check_files_exist(input_files)
+	check if batch of files or a single file exist, check_files_exists(input_files), if any file is not existed, program exits.
+	
+

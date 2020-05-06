@@ -1,0 +1,9 @@
+Package utils.py contains some useful function while you process data.
+
+0. check_bam_index
+	First check if bam index exists, check_bam_index(bam), if not, index the bam you provide, also return bam file to you.
+
+1. check_samtools
+	Check if samtools is in your system path, check_samtools(tool), if not, program exits.
+
+2.
