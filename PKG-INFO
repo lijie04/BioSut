@@ -1,6 +1,10 @@
 Metadata-Version: 1.0
 Name: bioutil
+<<<<<<< HEAD
 Version: 0.0.2
+=======
+Version: 0.0.1
+>>>>>>> 8627ced38923a418ba1059c7c045700a5f13d292
 Summary: bioutil lib for bio related bioinformatics operations.
 Home-page: None
 Author: Jie Li
