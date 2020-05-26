@@ -5,16 +5,15 @@
 #																	#
 #####################################################################
 
-__author__ = 'Irene Jie Li'
+__author__ = 'Jie Li'
 __copyright__ = 'Copyright 2018'
-__credits__ = ['Irene Jie Li']
+__credits__ = ['Jie Li']
 #__license__ = 'GPL3'  choose the proper open license
-__maintainer__ = ['Irene Jie Li']
+__maintainer__ = ['Jie Li']
 __email__ = 'irene.jie.li6 at gmail.com'
 
 import os
 import sys
-import subprocess
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ class path:
 		"""
 		new_paths = []
 		for p in paths:
-			p = os.path.realpath(p)
+			p = path.realpath(p)
 			new_paths.append(p)
 			if not os.path.exists(p):
 				logger.error('Path *%s* does not exists.', p)
@@ -72,7 +71,24 @@ class path:
 					sys.exit()
 		if len(new_paths) == 1:return new_paths[0]
 		return new_paths
-		
+	
+	def exe_proc(cmd):
+		"""
+		Executing your command.
+
+		Results:
+		Return output result and error messages.
+		"""
+
+		import subprocess as sp
+		proc = sp.Popen(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+		out, err = proc.communicate()
+		if proc.returncode != 0:
+			logger.error('Error encountered while executing:\n%s\nError message:\n%s\n' %(cmd, err))
+			sys.exit()
+		return out, err
+
+
 	def check_empty(*dirs):
 		"""
 		Check if directory is empty.
@@ -90,6 +106,17 @@ class path:
 
 
 	def realpath(p):
+		"""
+		Get full path.
+
+		Parameters:
+		p:str
+			input path.
+
+		Return:
+		str
+			full path of input path
+		"""
 		return os.path.realpath(p)
 
 
@@ -126,18 +153,8 @@ class path:
 			sys.exit()
 		return db
 
-#	deprecated, use os.path.realpath instead
-#	def make_full_path(self):
-#		#print(path)
-#		if self.path.startswith('/'):
-#			self.path = self.path
-#		elif self.path.starswith('.'):
-#			self.path = os.path.join(os.getcwd(), self.path)
-#		else:
-#			self.path = os.path.join(os.getcwd(), self.path)
-#		self.make_sure_path_exists(self.path)
-#		return self.path
 
+### class files
 class files:
 	
 	## deprecated, redundanted.
@@ -153,31 +170,7 @@ class files:
 			logger.error('File * %s * does not exists.', f)
 			sys.exit()
 
-#	@classmethod
-#	def check_exist(cls, in_file, check_empty=False):
-		"""
-		Check if file exist or empty.
 
-		Parameters:
-		in_file:	file that will be checked, can be a file or file list
-		check_empty:	bool, check if file empty or not.
-
-		Results:
-		If file is not exists, or empty, report errors and exit.
-
-		"""
-
-#		if type(in_file) == str:
-#			if not os.path.isfile(in_file):
-##				logger.error('File *%s* does not exists', in_file)
-#				sys.exit()
-#			if check_empty:
-#				files.check_empty(in_file)
-#		else:
-#			if type(in_file) == list:
-#				for f in in_file:
-#					check_file_exist(f)
-	
 	@classmethod
 	def check_exist(cls, *kargs, check_empty=False):
 		for	k in kargs:
@@ -204,4 +197,30 @@ class files:
 			sys.exit()
 
 
+	def get_prefix(f, include_path=False):
+		"""
+		Get prefix of file, e.g. file is test.fa, then return test
+		"""
+		f = path.realpath(f)
+		if include_path:
+			return os.path.splitext(f)[0]
+		else:
+			return os.path.splitext(os.path.basename(f))[0]
+
+
+	def perfect_open(f):
+		"""
+		Make a perfect open for file
+
+		Returns
+		-------
+		str
+			Return a file handle
+		"""
+		
+		if '.gz' in f:
+			import gzip
+			return gzip.open(f, 'rt')
+		else:
+			return open(f, 'r')
 
