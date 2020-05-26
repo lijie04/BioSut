@@ -10,6 +10,7 @@ __copyright__ = 'Copyright 2018'
 __credits__ = ['Jie Li']
 #__license__ = 'GPL3'  choose the proper open license
 __maintainer__ = ['Jie Li']
+<<<<<<< HEAD
 __email__ = 'jeveylijie at gmail.com'
 
 import os
@@ -110,13 +111,16 @@ class path:
 		Get full path.
 
 		Parameters:
-		p:str
+		-----------
+		paths:str
 			input path (s).
 
 		Return:
+		-------
 		str
 			full path of input path
 		"""
+
 		new_paths = []
 		for p in paths:
 			p = os.path.realpath(p)
