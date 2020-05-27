@@ -15,15 +15,6 @@ def version():
 setup(
 	name = 'bioutil',
 	version = version(),
-=======
-setup(
-	name = 'bioutil',
-<<<<<<< HEAD
-	version = '0.0.2',
-=======
-	version = '0.0.1',
->>>>>>> 8627ced38923a418ba1059c7c045700a5f13d292
->>>>>>> 26706aa660cfa7a0dd6f866ff838922b46634e92
 	author = 'Jie Li',
 	author_email = 'jeveylijie@gmail.com',
 	url = 'None',
