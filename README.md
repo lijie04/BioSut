@@ -1,3 +1,6 @@
+# bioutil 0.0.4 (2020-0528)
+add sequtil.seqmodify.break_fasta function
+
 # bioutil 0.0.3 (2020-05-26)
 make path.realpth can deal many paths at one time.
 
