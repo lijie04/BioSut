@@ -111,7 +111,7 @@ class sequtil:
 class seqmodify:
 
 	@classmethod
-	def trimfa(cls, fasta, outfasta, 
+	def filter_fasta(cls, fasta, outfasta, 
 				longer=None, shorter=None,
 				first=0, end=0):
 		"""
@@ -119,17 +119,22 @@ class seqmodify:
 
 		Parameters:
 		-----------
-		fasta:	input fasta file.
-		outfasta:	output fasta file.
-		longer=remove sequence longer than this cutoff.
-		shorter=remove sequence shorter than this cutoff
-		first=longest top n% sequences will be discard.
-		end=shortest top n% sequences will be discard.
+		fasta:str
+			input FASTA file.
+		outfasta:str
+			output FASTA file.
+		longer=int
+			exclude sequence longer than this cutoff, default None.
+		shorter=int
+			exclude sequence shorter than this cutoff, default None.
+		first=int
+			longest top n% sequences will be excluded, default 0.
+		end=int
+			shortest top n% sequences will be excluded, default 0.
 
-		Returns
-		-------
-		str
-			Trimmed fa
+		Returns:
+		--------
+		Trimmed FASTA
 		"""
 		
 		length = cls.cal_length(fasta)
@@ -138,21 +143,32 @@ class seqmodify:
 		if shorter:length = length.loc[length[length.length>=shorter].index]
 
 		length = length.sort_values(by='length', ascending=False)
+
 		first = round(first * len(length)/float(100) + 0.5)
 		end = round(end * len(length)/float(100) + 0.5)
 		length = length.iloc[first:len(length)-end, ]
 
 		cls.extra_seq(fasta, length.index, outf=outfasta)
 
+
 	def cal_length(fasta, outf=None, plot=False, bins=10):
 		"""
 		calculate sequences length.
 		
 		Parameters:
-		fasta:	fasta input file
-		outf=output length file, default is None.
-		plot=bool, plot a hist of fasta length, default is False. It has to set with outf
-		bins=number of bins to plot, default 10.
+		-----------
+		fasta:str
+			fasta input file
+		outf=int
+			output length file, default is None.
+		plot=bool
+			plot a hist of fasta length, default is False. It has to set with outf
+		bins=int
+			number of bins to plot, default 10.
+		
+		Returns:
+		--------
+		Return dataframe contain FASTA length.
 		"""
 		
 		length = {}
@@ -169,17 +185,40 @@ class seqmodify:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-	def extra_seq(fasta, idlist, outf=None):
+
+	def extra_seq(fasta, idlist, outf=None, match=True):
+		"""
+		Extract FASTA sequence you need.
+		
+		Parameters:
+		-----------
+		fasta:str
+			Input FASTA file.
+		idlist:list or file contain a column of id, without header.
+			idlist to extract corresponding sequences.
+		outf=str
+			output file name, default stout
+		match=bool
+			extract the sequence matched id or in turn.
+
+		Result:
+		--------
+		Output FASTA file or stdout FASTA.
+
+		"""
 		if type(idlist) is str:
 			idlist = pd.read_csv(idlist, sep='\t', header=None, index_col=0).index
 		in_handle = perfect_open(fasta)
 		outseq = []
 		for rec in SeqIO.parse(in_handle, 'fasta'):
-			if str(rec.id) in idlist:
-				outseq.append(rec)
+			if match:
+				if str(rec.id) in idlist:
+					outseq.append(rec)
+			else:
+				if str(rec.id) not in idlist:
+					outseq.append(rec)
 		if outf:
-			print('printing.')
 			SeqIO.write(outseq, outf, 'fasta')
-
+	
 
 
