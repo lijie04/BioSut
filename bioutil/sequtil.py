@@ -220,5 +220,47 @@ class seqmodify:
 		if outf:
 			SeqIO.write(outseq, outf, 'fasta')
 	
+	
+	def break_fasta(fasta, symbol='N'):
+		"""
+		Use this function to break FASTA using symbol provided, e.g.N
+
+		Parameters:
+		-----------
+		fasta:str
+			Input FASTA file.
+		symbol=str
+			symbol to break fasta, [N]
+
+		Result:
+		-------
+		Output a FASTA file with broken contigs.
+		"""
+		outf = fasta + '.split.by.%s.fasta' % symbol
+
+		with open(outf, 'w') as out:
+			for rec in SeqIO.parse(fasta, 'fasta'):
+				flag = 0
+				if symbol in rec.seq:
+					seq = rec.seq.split(symbol):
+					c = 0
+					for s in seq:
+						if s != '':
+							out.write('>%s_%d\n%s\n' % (str(rec.id), c, s))
+							c += 1
+					#new_seq = ''
+					#for n, s in zip(range(len(seq)), seq):
+						#if n < len(seq) - 1:
+						#	if seq[n+1] == '':
+						#	new_s = new_s + s + symbol
+						#else:
+						#	new_s = new_s + s
+						#	out.write('>%s_%d\n%s\n' % (str(rec.id), c, new_s))
+						#	c += 1
+						#	new_s = ''
+				else:
+					out.write('>%s\n%s\n' % (str(rec.id), str(rec.seq)))
+
+
 
 

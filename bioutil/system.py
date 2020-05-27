@@ -10,7 +10,6 @@ __copyright__ = 'Copyright 2018'
 __credits__ = ['Jie Li']
 #__license__ = 'GPL3'  choose the proper open license
 __maintainer__ = ['Jie Li']
-<<<<<<< HEAD
 __email__ = 'jeveylijie at gmail.com'
 
 import os
