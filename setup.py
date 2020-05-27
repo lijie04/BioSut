@@ -4,7 +4,6 @@
 
 from distutils.core import setup
 
-<<<<<<< HEAD
 import os
 
 def version():
