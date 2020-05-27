@@ -172,7 +172,7 @@ class seqmodify:
 		"""
 		
 		length = {}
-		in_handle = perfect_open(fasta)
+		in_handle = files.perfect_open(fasta)
 		for rec in SeqIO.parse(in_handle, 'fasta'):
 			length[str(rec.id)] = len(rec.seq)
 		new = {}
@@ -208,7 +208,7 @@ class seqmodify:
 		"""
 		if type(idlist) is str:
 			idlist = pd.read_csv(idlist, sep='\t', header=None, index_col=0).index
-		in_handle = perfect_open(fasta)
+		in_handle = files.perfect_open(fasta)
 		outseq = []
 		for rec in SeqIO.parse(in_handle, 'fasta'):
 			if match:
@@ -221,7 +221,7 @@ class seqmodify:
 			SeqIO.write(outseq, outf, 'fasta')
 	
 	
-	def break_fasta(fasta, symbol='N'):
+	def break_fasta(fasta, outfasta, symbol='N'):
 		"""
 		Use this function to break FASTA using symbol provided, e.g.N
 
@@ -229,6 +229,8 @@ class seqmodify:
 		-----------
 		fasta:str
 			Input FASTA file.
+		outfasta:str
+			Output FASTA file.
 		symbol=str
 			symbol to break fasta, [N]
 
@@ -236,13 +238,12 @@ class seqmodify:
 		-------
 		Output a FASTA file with broken contigs.
 		"""
-		outf = fasta + '.split.by.%s.fasta' % symbol
 
-		with open(outf, 'w') as out:
+		with open(outfasta, 'w') as out:
 			for rec in SeqIO.parse(fasta, 'fasta'):
 				flag = 0
 				if symbol in rec.seq:
-					seq = rec.seq.split(symbol):
+					seq = rec.seq.split(symbol)
 					c = 0
 					for s in seq:
 						if s != '':
@@ -262,5 +263,11 @@ class seqmodify:
 					out.write('>%s\n%s\n' % (str(rec.id), str(rec.seq)))
 
 
+# for test
 
+if __name__== '__main__':
+	import sys
+	fasta = sys.argv[1]
+#	seqmodify.break_fasta(fasta, aaaa)
+	seqmodify.filter_fasta(aaaa, fasta+'.more500', shorter=500)
 
