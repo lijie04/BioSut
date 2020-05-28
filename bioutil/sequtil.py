@@ -15,7 +15,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from system import files
+from bioutil.system import files
 
 class sequtil:
 	
