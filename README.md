@@ -1,4 +1,7 @@
-# bioutil 0.0.4 (2020-0528)
+# biotuil 0.0.5 (2020-05-28)
+Fixed some minor bugs
+
+# bioutil 0.0.4 (2020-05-27)
 add sequtil.seqmodify.break_fasta function
 
 # bioutil 0.0.3 (2020-05-26)
