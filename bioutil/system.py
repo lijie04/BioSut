@@ -73,15 +73,22 @@ class path:
 		if len(new_paths) == 1:return new_paths[0]
 		return new_paths
 	
-	def exe_proc(cmd):
+	def exe_proc(cmd, shell=True):
 		"""
 		Executing your command.
-
+		
+		Parameters:
+		-----------
+		cmd:str/list
+			input command
+		shell=bool
+			True, set to False if cmd is a list.
+		
 		Results:
 		Return output result and error messages.
 		"""
 
-		proc = sp.Popen(cmd, shell=True, stdout=sp.PIPE, stderr=sp.PIPE)
+		proc = sp.Popen(cmd, shell=shell, stdout=sp.PIPE, stderr=sp.PIPE)
 		out, err = proc.communicate()
 		if proc.returncode != 0:
 			logger.error('Error encountered while executing:\n%s\nError message:\n%s\n' %(cmd, err))
