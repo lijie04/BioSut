@@ -128,7 +128,7 @@ class path:
 			return new_paths
 	
 	@classmethod
-	def getpath(*files):
+	def getpath(cls, *files):
 		"""
 		Get absolute path of your file and return it.
 		
