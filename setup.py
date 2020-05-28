@@ -5,20 +5,24 @@
 from distutils.core import setup
 
 import os
+from bioutil.system import files
 
 def version():
-	bdir = os.path.dirname(os.path.realpath(__file__))
-	version = bdir + '/bioutil/VERSION'
-	return open(version).readline().strip()
+	vers_file = os.path.dirname(__file__) + '/VERSION'
+	files.check_exist(vers_file)
 
-setup(
-	name = 'bioutil',
-	version = version(),
-	author = 'Jie Li',
-	author_email = 'jeveylijie@gmail.com',
-	url = 'None',
-	description = 'bioutil lib for bio related bioinformatics operations.',
-	license = 'MIT3.0',
-	platform = 'Linux',
-	packages = ['bioutil']
-	)
+	return open(vers_file).readline().strip()
+
+if __name__ == '__main__':
+
+	setup(
+		name = 'bioutil',
+		version = version(),
+		author = 'Jie Li',
+		author_email = 'jeveylijie@gmail.com',
+		url = 'Not now',
+		description = 'bioutil lib for bio related bioinformatics operations.',
+		license = 'Not now',
+		platform = 'Linux',
+		packages = ['bioutil']
+		)
