@@ -107,7 +107,7 @@ class path:
 
 	def realpath(*paths):
 		"""
-		Get full path.
+		This will make sure your file have an absolute path.
 
 		Parameters:
 		-----------
@@ -120,14 +120,35 @@ class path:
 			full path of input path
 		"""
 
-		new_paths = []
-		for p in paths:
-			p = os.path.realpath(p)
-			new_paths.append(p)
+		new_paths = [os.path.realpath(p) for p in paths]
+
 		if len(new_paths) == 1:
 			return new_paths[0]
 		else:
 			return new_paths
+	
+	@classmethod
+	def getpath(*files):
+		"""
+		Get absolute path of your file and return it.
+		
+		Parameters:
+		-----------
+		paths:str
+			input path (s)
+
+		Return:
+		-------
+		str
+			Absolute path of your input file
+		"""
+		
+		final_paths = [os.path.dirname(cls.realpath(f)) for f in files]
+		
+		if len(final_paths) == 1:
+			return final_paths[0]
+		else:
+			return final_paths
 
 
 	def check_program(*prog):
@@ -143,6 +164,7 @@ class path:
 			if code:
 				logger.error('Program * %s * is not found', p)
 				sys.exit()
+
 
 	@classmethod
 	def check_db(cls, db_v):

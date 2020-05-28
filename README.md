@@ -1,8 +1,8 @@
 # biotuil 0.0.5 (2020-05-28)
-Fixed some minor bugs
+Fixed some minor bugs, and add a path.getpath function to return abusolute path of inputs.
 
 # bioutil 0.0.4 (2020-05-27)
-add sequtil.seqmodify.break_fasta function
+add sequtil.seqmodify.break_fasta function.
 
 # bioutil 0.0.3 (2020-05-26)
 make path.realpth can deal many paths at one time.

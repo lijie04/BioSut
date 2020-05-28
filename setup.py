@@ -5,13 +5,19 @@
 from distutils.core import setup
 
 import os
-from bioutil.system import files
+import sys
 
 def version():
-	vers_file = os.path.dirname(__file__) + '/VERSION'
-	files.check_exist(vers_file)
+	vers_file = os.path.dirname(os.path.realpath(__file__)) + '/VERSION'
+	
+	if os.path.isfile(vers_file):
+		version = open(vers_file).readline().strip()
 
-	return open(vers_file).readline().strip()
+		print('You are installing bioutil %s' % version)
+		return version
+	else:
+		sys.exit('Dont know your package version, didnt find VERSION file')
+
 
 if __name__ == '__main__':
 
