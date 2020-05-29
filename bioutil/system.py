@@ -112,7 +112,7 @@ class path:
 				sys.exit()
 
 
-	def realpath(*paths):
+	def real_path(*paths):
 		"""
 		This will make sure your file have an absolute path.
 
@@ -135,7 +135,7 @@ class path:
 			return new_paths
 	
 	@classmethod
-	def getpath(cls, *files):
+	def get_path(cls, *files):
 		"""
 		Get absolute path of your file and return it.
 		
