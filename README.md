@@ -1,5 +1,8 @@
+# bioutil 0.0.6 (2020-05-31)
+Add some new features to sequtil.py
+
 # biotuil 0.0.5 (2020-05-28)
-Fixed some minor bugs, and add a path.getpath function to return abusolute path of inputs.
+Fixed some minor bugs, and add a path.get_path function to return abusolute path of inputs.
 
 # bioutil 0.0.4 (2020-05-27)
 add sequtil.seqmodify.break_fasta function.
