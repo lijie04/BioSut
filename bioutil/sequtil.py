@@ -109,7 +109,7 @@ class sequtil:
 		return seqs
 
 	@classmethod
-	def evaluate_genome(cls, genome, ftype=file):
+	def evaluate_genome(cls, genome, ftype='file'):
 		"""
 		Evaluate genome and return genome features.
 
@@ -124,7 +124,7 @@ class sequtil:
 		--------
 		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
-		if ftype is not file or not dict:
+		if ftype != 'file' or ftype != 'dict':
 			sys.exit('ftype can only be file or dict.')
 
 		if ftype is file:
