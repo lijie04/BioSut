@@ -114,7 +114,7 @@ class path:
 
 	def real_path(*paths):
 		"""
-		This will make sure your file have an absolute path.
+		This will return real path.
 
 		Parameters:
 		-----------
@@ -124,7 +124,7 @@ class path:
 		Return:
 		-------
 		str
-			full path of input path
+			real path of input path
 		"""
 
 		new_paths = [os.path.realpath(p) for p in paths]
@@ -134,6 +134,28 @@ class path:
 		else:
 			return new_paths
 	
+	def abs_path(*paths):
+		"""
+		This will return abusolute path.
+
+		Parameters:
+		-----------
+		paths:str
+			input path (s).
+
+		Return:
+		-------
+		str
+			abs path of input path.
+		"""
+		
+		new_paths = [os.path.abspath(p) for p in paths]
+		if len(new_paths) == 1:
+			return new_paths[0]
+		else:
+			return new_paths
+
+
 	@classmethod
 	def get_path(cls, *files):
 		"""
