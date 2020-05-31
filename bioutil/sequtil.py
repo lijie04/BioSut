@@ -288,25 +288,26 @@ class seqmodify:
 		symbol_len = len(symbol)
 		symbol += '+' # make a 're' match to indicate one or more symbol
 		fasta = sequtil.read_fasta(fasta)
-		print(symbol)
-		c = 0
+		print(symbol, symbol_len)
 		start = 0
 		end = 0
 		with open(outfasta, 'w') as out:
 			for i in fasta:
-				gaps = re.findall(symbol, fasta[i])
+				c = 0
+				contig = fasta[i]
+				gaps = re.findall(symbol, contig))
 
 				if len(gaps) == 0:
-					out.write('>%s\n%s\n' % (i, fasta[i]))
+					out.write('>%s\n%s\n' % (i, contig)
 					continue
 
 				for gap in gaps:
-					pos = fasta[i][end:].find(gap)
+					pos = contig[end:].find(gap)
 					end += pos
 					## use symbol_len to replace, to judge whether to stop here or not.
 					if len(gap) == symbol_len:
 						c += 1
-						out.write('>%s_%d|size=%s\n%s\n' % (i, c, end-start, fasta[i][start:end]))
+						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, contig[start:end]))
 						start = end + len(gap)
 						end += len(gap)
 						continue
@@ -314,11 +315,11 @@ class seqmodify:
 						end += len(gap)
 					else:
 						c += 1
-						out.write('>%s_%d|size=%s\n%s\n' % (i, c, end-start, fasta[i][start:end]))
+						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, contig[start:end]))
 						start = end + len(gap)
 						end += len(gap)
 				## make the last one, cause n gaps will chunk sequences into n+1 small sequences.
-				out.write('>%s_%d|size=%s\n%s\n' % (i, c+1, len(fasta[i])-start, fasta[i][start:]))
+				out.write('>%s_%d|len=%s\n%s\n' % (i, c+1, len(contig)-start, contig[start:]))
 
 
 # for test
