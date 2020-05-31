@@ -289,11 +289,9 @@ class seqmodify:
 		symbol += '+' # make a 're' match to indicate one or more symbol
 		fasta = sequtil.read_fasta(fasta)
 		print(symbol, symbol_len)
-		start = 0
-		end = 0
 		with open(outfasta, 'w') as out:
 			for i in fasta:
-				c = 0
+				c, start, end = 0, 0, 0
 				contig = fasta[i]
 				gaps = re.findall(symbol, contig))
 
