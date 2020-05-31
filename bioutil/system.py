@@ -36,7 +36,7 @@ class path:
 		"""
 		new_paths = []
 		for p in paths:
-			p = path.real_path(p)
+			p = path.abs_path(p)
 			new_paths.append(p)
 			if not os.path.exists(p):
 				logger.error('Path *%s* does not exists.', p)
@@ -62,7 +62,7 @@ class path:
 
 		new_paths = []
 		for p in paths:
-			p = path.real_path(p)
+			p = path.abs_path(p)
 			new_paths.append(p)
 			if not os.path.exists(p):
 				try:
@@ -172,7 +172,7 @@ class path:
 			Absolute path of your input file
 		"""
 		
-		final_paths = [os.path.dirname(cls.real_path(f)) for f in files]
+		final_paths = [os.path.dirname(cls.abs_path(f)) for f in files]
 		
 		if len(final_paths) == 1:
 			return final_paths[0]
@@ -262,7 +262,7 @@ class files:
 		"""
 		Get prefix of file, e.g. file is test.fa, then return test
 		"""
-		f = path.real_path(f)
+		f = path.abs_path(f)
 		if include_path:
 			return os.path.splitext(f)[0]
 		else:
