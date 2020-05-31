@@ -1,3 +1,6 @@
+0.0.6
+Add some features to sequtil.
+
 0.0.5
 Fixed some minor bugs and add a path.getpath function to return abusolute path of inputs.
 

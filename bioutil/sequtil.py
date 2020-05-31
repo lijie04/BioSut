@@ -88,6 +88,7 @@ class sequtil:
 	def read_fastq(fastq, length=False, qual=False):
 		"""
 		Read fastq format file in.
+
 		Parameters:
 		-----------
 		fastq:str
@@ -106,6 +107,31 @@ class sequtil:
 			if qual:seqs[t] = [seq, _]
 		fastq_handle.close()
 		return seqs
+
+	@classmethod
+	def count_gap(cls, genome, ftype=str):
+		"""
+		Count gaps in genome.
+
+		Parameters:
+		-----------
+		genome:str|file
+			Input genome FASTA format file or string of genome
+		ftype:str|file
+			input of genome is str or file.
+
+		Returns:
+		--------
+		Return gap number
+		"""
+		
+		if genome is file:
+			genome = cls.read_fasta(genome)
+		gap = 0
+		for i in genome:
+			gap += len(re.findall('N+'), genome[i])
+		return gap
+
 
 
 class seqmodify:
@@ -219,11 +245,12 @@ class seqmodify:
 					outseq.append(rec)
 		if outf:
 			SeqIO.write(outseq, outf, 'fasta')
-	
-	
-	def break_fasta(fasta, outfasta, symbol='N'):
+
+
+	@classmethod
+	def break_fasta(fasta, outfasta, symbol='N', exact=True):
 		"""
-		Use this function to break FASTA using symbol provided, e.g.N
+		Use this function to break sequence using symbol (e.g. Ns).
 
 		Parameters:
 		-----------
@@ -232,35 +259,44 @@ class seqmodify:
 		outfasta:str
 			Output FASTA file.
 		symbol=str
-			symbol to break fasta, [N]
+			symbol to use to break FASTA. [N]
+		exact=bool
+			exact symbol or not, e.g, set symbol is NN, exact=True will not NNN or NNNN as a cut point. [True]
 
 		Result:
 		-------
-		Output a FASTA file with broken contigs.
+		Output a FASTA file with broken using symbol.
 		"""
-
+	
+		symbol_len = len(symbol)
+		symbol += '+' # make a 're' match to indicate one or more symbol
+		print(symbol)
+		fasta = cls.read_fasta(fasta)
+		c = 0
+		start = 0
+		end = 0
 		with open(outfasta, 'w') as out:
-			for rec in SeqIO.parse(fasta, 'fasta'):
-				flag = 0
-				if symbol in rec.seq:
-					seq = rec.seq.split(symbol)
-					c = 0
-					for s in seq:
-						if s != '':
-							out.write('>%s_%d\n%s\n' % (str(rec.id), c, s))
-							c += 1
-					#new_seq = ''
-					#for n, s in zip(range(len(seq)), seq):
-						#if n < len(seq) - 1:
-						#	if seq[n+1] == '':
-						#	new_s = new_s + s + symbol
-						#else:
-						#	new_s = new_s + s
-						#	out.write('>%s_%d\n%s\n' % (str(rec.id), c, new_s))
-						#	c += 1
-						#	new_s = ''
-				else:
-					out.write('>%s\n%s\n' % (str(rec.id), str(rec.seq)))
+			for i in fasta:
+				gaps = re.findall(symbol, fasta[i])
+				for gap in gaps:
+					pos = fasta[i][end:].find(gap)
+					end += pos
+					## use symbol_len to replace, to judge whether to stop here or not.
+					if len(gap) == symbol_len:
+						c += 1
+						out.write('>%s_%d|size=%s\n%s\n' % (i, c, end-start, fasta[i][start:end]))
+						start = end + len(gap)
+						end += len(gap)
+						continue
+					if exact:
+						end += len(gap)
+					else:
+						c += 1
+						out.write('>%s_%d|size=%s\n%s\n' % (i, c, end-start, fasta[i][start:end]))
+						start = end + len(gap)
+						end += len(gap)
+				## make the last one, cause n gaps will chunk sequences into n+1 small sequences.
+				out.write('>%s_%d|size=%s\n%s\n' % (i, c, len(fasta[i])-start, fasta[i][start:]))
 
 
 # for test
