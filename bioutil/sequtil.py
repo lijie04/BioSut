@@ -265,7 +265,6 @@ class seqmodify:
 			SeqIO.write(outseq, outf, 'fasta')
 
 
-	@classmethod
 	def break_fasta(fasta, outfasta, symbol='N', exact=True):
 		"""
 		Use this function to break sequence using symbol (e.g. Ns).
@@ -288,14 +287,19 @@ class seqmodify:
 	
 		symbol_len = len(symbol)
 		symbol += '+' # make a 're' match to indicate one or more symbol
+		fasta = sequtil.read_fasta(fasta)
 		print(symbol)
-		fasta = cls.read_fasta(fasta)
 		c = 0
 		start = 0
 		end = 0
 		with open(outfasta, 'w') as out:
 			for i in fasta:
 				gaps = re.findall(symbol, fasta[i])
+
+				if len(gaps) == 0:
+					out.write('>%s\n%s\n' % (i, fasta[i]))
+					continue
+
 				for gap in gaps:
 					pos = fasta[i][end:].find(gap)
 					end += pos
@@ -314,7 +318,7 @@ class seqmodify:
 						start = end + len(gap)
 						end += len(gap)
 				## make the last one, cause n gaps will chunk sequences into n+1 small sequences.
-				out.write('>%s_%d|size=%s\n%s\n' % (i, c, len(fasta[i])-start, fasta[i][start:]))
+				out.write('>%s_%d|size=%s\n%s\n' % (i, c+1, len(fasta[i])-start, fasta[i][start:]))
 
 
 # for test
