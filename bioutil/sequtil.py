@@ -109,91 +109,47 @@ class sequtil:
 		return seqs
 
 	@classmethod
-	def count_gap(cls, genome, ftype=file):
+	def evaluate_genome(cls, genome, ftype=file):
 		"""
-		Count overall gaps number of a genome.
+		Evaluate genome and return genome features.
 
 		Parameters:
 		-----------
 		genome:dict|file
-			Input genome FASTA format file or dict contains contigs.
+			Input dict contains contigs or a FASTA file.
 		ftype=dict|file
-			input of genome is dict or file. [file]
+			input genome is dict or file [file]
 
 		Returns:
 		--------
-		Return gap number
+		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
-
 		if ftype is not file or not dict:
-			sys.exit('Input ftype can only be dict or a FASTA file.')
-		
-		if genome is file:
-			genome = cls.read_fasta(genome)
-		gap = 0
-		for i in genome:
-			gap += len(re.findall('N+'), genome[i])
-		return gap
+			sys.exit('ftype can only be file or dict.')
 
-
-	def n50(genome, ftype=file):
-		"""
-		Calculating n50 of a genome.
-
-		Parameters:
-		-----------
-		genome:list|file
-			A list of contig lengths or a FASTA formate file.
-		ftype=list|file
-			input genome is a list or a file [file].
-	
-		Returns:
-		--------
-		Return n50 of input genome.
-		"""
-
-		if ftype is not file or not list:
-			sys.exit('Input type can only be list or a FASTA file.')
-		if genome is file:
-			genome = cls.read_fasta(genome, length=True).values()
-
-		genome.sort(reverse=True)
-		total_length = sum(genome)
-		sum_len = 0
-		for i in genome:
-			sum_len += i
-			if sum_len >= total_length*0.5:
-				return i
-	
-	@classmethod
-	def gc(genome, ftype=file):
-		"""
-		Calculate overall gc ratio of genome.
-		
-		Parameters:
-		-----------
-		genome:dict|file
-			input a dict of contigs or a FASTA file
-		ftype=dict|file
-			indicating input type of genome. [file]
-
-		Returns:
-		-------
-		Return genome size and gc ratio of input genome.
-		"""
-		
-		if ftype is not file or not dict:
-			sys.exit('Input ftype can only be dict or a FASTA file.')
-		
 		if ftype is file:
 			genome = cls.read_fasta(genome)
+		gap = 0
 		gc = 0
-		total_length = 0
+		contig_lens = []
 		for i in genome:
-			total_length += len(genome[i])
-			gc += cls._count_string_gc(genome[i])
-			
-		return total_length, round(gc/total_length*100., 2)
+			contig = genome[i]
+			contig_lens.append(len(contig))
+			gap += len(re.findall('N+', contig))
+			gc += cls._count_string_gc(contig) 
+
+		genome_size = sum(contig_lens)
+		gc = round(gc/genome_size*100., 2)
+
+		contig_lens.sort(reverse=True)
+		sum_len = 0
+		for i in contig_lens:
+			sum_len += i
+			if sum_len >= genome_size*0.5:
+				n50 = i
+				break
+		
+		return genome_size, n50, max(contig_lens), min(contig_lens), gap, gc
 
 
 class seqmodify:
