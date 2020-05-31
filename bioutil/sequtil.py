@@ -125,7 +125,7 @@ class sequtil:
 		Return gap number
 		"""
 
-		if ftype is not file or is not dict:
+		if ftype is not file or not dict:
 			sys.exit('Input ftype can only be dict or a FASTA file.')
 		
 		if genome is file:
@@ -152,7 +152,7 @@ class sequtil:
 		Return n50 of input genome.
 		"""
 
-		if ftype is not file or is not list:
+		if ftype is not file or not list:
 			sys.exit('Input type can only be list or a FASTA file.')
 		if genome is file:
 			genome = cls.read_fasta(genome, length=True).values()
@@ -182,7 +182,7 @@ class sequtil:
 		Return genome size and gc ratio of input genome.
 		"""
 		
-		if ftype is not file or is not dict:
+		if ftype is not file or not dict:
 			sys.exit('Input ftype can only be dict or a FASTA file.')
 		
 		if ftype is file:
