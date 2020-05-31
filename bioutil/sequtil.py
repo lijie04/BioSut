@@ -296,7 +296,7 @@ class seqmodify:
 				gaps = re.findall(symbol, contig)
 
 				if len(gaps) == 0:
-					out.write('>%s\n%s\n' % (i, contig)
+					out.write('>%s\n%s\n' % (i, contig))
 					continue
 
 				for gap in gaps:
