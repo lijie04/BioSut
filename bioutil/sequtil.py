@@ -293,7 +293,7 @@ class seqmodify:
 			for i in fasta:
 				c, start, end = 0, 0, 0
 				contig = fasta[i]
-				gaps = re.findall(symbol, contig))
+				gaps = re.findall(symbol, contig)
 
 				if len(gaps) == 0:
 					out.write('>%s\n%s\n' % (i, contig)
