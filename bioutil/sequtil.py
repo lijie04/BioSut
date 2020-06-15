@@ -109,7 +109,7 @@ class sequtil:
 		return seqs
 
 	@classmethod
-	def evaluate_genome(cls, genome, ftype='file'):
+	def evaluate_genome(cls, genome, intype='file'):
 		"""
 		Evaluate genome and return genome features.
 
@@ -117,17 +117,17 @@ class sequtil:
 		-----------
 		genome:dict|file
 			Input dict contains contigs or a FASTA file.
-		ftype=dict|file
+		intype=dict|file
 			input genome is dict or file [file]
 
 		Returns:
 		--------
 		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
-		if ftype != 'file' or ftype != 'dict':
-			sys.exit('ftype can only be file or dict.')
+		if intype != 'file' or intype != 'dict':
+			sys.exit('intype can only be file or dict.')
 
-		if ftype is file:
+		if intype == 'file':
 			genome = cls.read_fasta(genome)
 		gap = 0
 		gc = 0
