@@ -124,7 +124,7 @@ class sequtil:
 		--------
 		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
-		if intype != 'file' or intype != 'dict':
+		if intype != 'file' and intype != 'dict':
 			sys.exit('intype can only be file or dict.')
 
 		if intype == 'file':
