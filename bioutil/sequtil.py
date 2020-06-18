@@ -230,7 +230,8 @@ class seqmodify:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-	def extract_seq(in_file, idlist, in_type='fasta', match_out=None, negmatch_out=None):
+	def extract_seq(in_file, idlist, in_type='fasta', low_level=False,
+					match_out=None, negmatch_out=None):
 		"""
 		Extract sequences you need.
 		
@@ -242,6 +243,8 @@ class seqmodify:
 			idlist to extract corresponding sequences. id is the string before gap.
 		in_type=str
 			input sequences type, fasta or fastq, default is fasta
+		low_level:bool
+			bool value to process as low level or not. default False
 		match_out:str
 			file to output positive matched items, default None.
 		negmatch_out:str
@@ -253,7 +256,17 @@ class seqmodify:
 		"""
 
 		if type(idlist) is str:
-			idlist = pd.read_csv(idlist, sep='\t', header=None, index_col=0).index
+			#if low_level:
+			df_reader = pd.read_csv(idlist, sep='\t', header=None, index_col=0, iterator=True)
+			idlist = []
+			while True:
+				try:
+					chunk = df_reader.get_chunk(10000000)
+					idlist.extend(list(chunk.index))
+				except StopIteration:
+					logger.info("Finished looping the db info in.")
+					break
+
 		in_handle = files.perfect_open(in_file)
 		match = []
 		negmatch = []
