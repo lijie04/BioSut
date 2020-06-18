@@ -5,8 +5,8 @@
 #												   	#
 #####################################################
 
-from Bio.SeqIO.FastaIO import SimpleFastaParser
-from Bio.SeqIO.QualityIO import FastqGeneralIterator
+#from Bio.SeqIO.FastaIO import SimpleFastaParser
+#from Bio.SeqIO.QualityIO import FastqGeneralIterator
 from re import findall
 import pandas as pd
 from bioutil.system import files
@@ -261,25 +261,32 @@ class seqalter:
 
 		fh = files.perfect_open(in_file)
 		match, negmatch = {}, {}
-		if in_type == 'fasta':
-			for t, seq in SimpleFastaParser(fh):
-				if t.partition(' ')[0] in idlist:
-					match[t] = seq
-				else:
-					negmatch[i] = seq
-		else:
-			for t, seq, qual in FastqGeneralIterator(fh):
-				if t.partition(' ')[0] in idlist:
-					match[t] = [seq, qual]
-				else:
-					negmatch[t] = [seq, qual]
+		
+		for t, seq, _ in readseq(fh):
+			if t.partition(' ')[0] in idlist:
+				match[t] = [seq, _]
+			else:
+				negmatch[t] = [seq, _]
+
+		#if in_type == 'fasta':
+		#	for t, seq in SimpleFastaParser(fh):
+		#		if t.partition(' ')[0] in idlist:
+		#			match[t] = seq
+		#		else:
+		#			negmatch[i] = seq
+		#else:
+		#	for t, seq, qual in FastqGeneralIterator(fh):
+		#		if t.partition(' ')[0] in idlist:
+		#			match[t] = [seq, qual]
+		#		else:
+		#			negmatch[t] = [seq, qual]
 		fh.close()
 
 		if match_out:
 			with open(match_out, 'w') as m_out:
 				if in_type == 'fasta':
 					for t in match:
-						m_out.write('>', t, '\n', match[t], '\n')
+						m_out.write('>', t, '\n', match[t][0], '\n')
 				else:
 					for t in match:
 						m_out.write('@', t, '\n', match[t][0], '\n', '+', '\n', match[t][1], '\n')
@@ -287,7 +294,7 @@ class seqalter:
 			with open(negmatch_out, 'w') as nm_out:
 				if in_type == 'fasta':
 					for t in negmatch:
-						nm_out.write('>', t, '\n', negmatch[t], '\n')
+						nm_out.write('>', t, '\n', negmatch[t][0], '\n')
 				else:
 					for t in negmatch:
 						nm_out.write('@', t, '\n', negmatch[t][0], '\n', '+', '\n', negmatch[t][1], '\n')
