@@ -258,16 +258,30 @@ class files:
 			sys.exit()
 
 
-	def get_prefix(f, include_path=False):
+	def get_prefix(f, times=1, include_path=False):
 		"""
 		Get prefix of file, e.g. file is test.fa, then return test
+		
+		Parameters:
+		-----------
+		f:str
+			input file, relative path or abusolute path.
+		times:int
+			how many times I supposed to chop str behind symbol '.'
+		include_path:bool
+			bool value to include absolute path or not.
+
+		Returns:
+		--------
+			return prefix(s).
 		"""
 		f = path.abs_path(f)
-		if include_path:
-			return os.path.splitext(f)[0]
-		else:
-			return os.path.splitext(os.path.basename(f))[0]
-
+		for i in range(times):
+			if include_path:
+				f = os.path.splitext(f)[0]
+			else:
+				f = os.path.splitext(os.path.basename(f))[0]
+		return f
 
 	def perfect_open(f):
 		"""
