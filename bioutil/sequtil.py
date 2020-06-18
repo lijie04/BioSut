@@ -1,27 +1,21 @@
 
 #####################################################
-##												   ##
+#												   	#
 # seqsutils.py -- fasta and fastq files utils		#
-##												   ##
+#												   	#
 #####################################################
 
-from Bio import SeqIO
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
-import re
+from re import findall
 import pandas as pd
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 from bioutil.system import files
 from bioutil.readseq import readseq
-
-## all Bio.SeqIO.FastaIO and QualityIO are transfered to lh3 readfq.py
 
 class sequtil:
 	
 	@classmethod
-	def count_fasta_gc(cls, seqs, len_cutoff=0):
+	def cal_fasta_gc(cls, seqs, len_cutoff=0):
 		"""
 		Count fasta file's sequence gc content and length.
 		
@@ -33,15 +27,16 @@ class sequtil:
 		Return a dict with key-value pairs are seqid and list[gc ratio, length of seq]
 		"""
 		gc = {}
-		with open(self.seqs) as fasta_handle:
+		fh = files.perfect_open(seqs)
 			# use low-level parser to speed up when dealing with super large data
-			for t, seq in SimpleFastaParser(fasta_handle):
-				if len(seq) >= len_cutoff:
-					gc[t] = [cls._count_string_gc(seq)/len(seq)*100., len(seq)]
+		for t, seq in SimpleFastaParser(fh):
+			if len(seq) >= len_cutoff:
+				gc[t] = [cls._count_string_gc(seq)/len(seq)*100., len(seq)]
+		fh.close()
 		return gc
 	
 	@classmethod
-	def count_fastq_gc(cls, seqs, len_cutoff=0):
+	def cal_fastq_gc(cls, seqs, len_cutoff=0):
 		"""
 		Count fastq file's sequence gc content and length.
 		
@@ -52,19 +47,20 @@ class sequtil:
 		Result:
 		Return a dict with key-value pairs are seqid and list[gc ratio, length of seq]
 		"""
+
 		gc = {}
-		fastq_handle = files.perfect_open(seqs)
+		fh = files.perfect_open(seqs)
 		# with open(seqs) as fastq_handle: this can't deal with *.gz file.
 		# use low-level parser to speed up when dealing with large data
-		for t, seq, _ in FastqGeneralIterator(fastq_handle):
+		for t, seq, _ in FastqGeneralIterator(fh):
 			if len(seq) >= len_cutoff:
 				gc[t] = cls._count_string_gc(seq)/len(seq)*100.
-		fastq_handle.close()
+		fh.close()
 		return gc
 	
 	def _count_string_gc(s):
-		_total_gc = s.count('G') + s.count('C')+s.count('g') + s.count('c')
-		return _total_gc
+		s = s.upper()
+		return s.count('G') + s.count('C')
 
 	def read_fasta(fasta, length=False):
 		"""
@@ -81,11 +77,10 @@ class sequtil:
 		Return a dict as id & sequence/length of seqeunce as key-value pairs.
 		"""
 		seqs = {}
-
 		fh = files.perfect_open(fasta)
-		for name, seq in readseq(fh):
-			seqs[name] = seq
-			if length:seqs[name] = len(seq)
+		for t, seq in SimpleFastaParser(fh):
+			seqs[t] = seq
+			if length:seqs[t] = len(seq)
 		fh.close()
 		return seqs
 
@@ -104,44 +99,35 @@ class sequtil:
 			sys.exit('Cant obtain qual is along with sequences, not sequence length.')
 		seqs = {}
 		fh = files.perfect_open(fastq)
-		# use low-level parser to deal with super large data
 		# use lh3's code, more efficiently.
-		for name, seq, _ in readseq(fh):
-			seqs[name] = seq
-			if length:seqs[name] = len(seq)
-			if qual:seqs[name] = [seq, _]
-		fastq_handle.close()
+		# use low-level parser to deal with super large data, faster than lh3 readfq
+		for t, seq, _ in FastqGeneralIterator(fh):
+			seqs[t] = seq
+			if length:seqs[t] = len(seq)
+			if qual:seqs[t] = [seq, _]
+		fh.close()
 		return seqs
 
 	@classmethod
-	def evaluate_genome(cls, genome, intype='file'):
+	def evaluate_genome(cls, genome):
 		"""
 		Evaluate genome and return genome features.
 
 		Parameters:
 		-----------
-		genome:dict|file
-			Input dict contains contigs or a FASTA file.
-		intype=dict|file
-			input genome is dict or file [file]
+		genome:file
+			Input file contains contigs or a FASTA file.
 
 		Returns:
 		--------
 		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
-		if intype != 'file' and intype != 'dict':
-			sys.exit('intype can only be file or dict.')
-
-		if intype == 'file':
-			genome = cls.read_fasta(genome)
-		gap = 0
-		gc = 0
-		contig_lens = []
-		for i in genome:
-			contig = genome[i]
-			contig_lens.append(len(contig))
-			gap += len(re.findall('N+', contig))
-			gc += cls._count_string_gc(contig) 
+		fh = files.perfect_open(genome)
+		gap, gc, contig_lens = 0, 0, []
+		for t, seq in SimpleFastaParser(fh):
+			contig_lens.append(len(seq))
+			gap += len(findall('N+', seq))
+			gc += cls._count_string_gc(seq) 
 
 		genome_size = sum(contig_lens)
 		gc = round(gc/genome_size*100., 2)
@@ -156,8 +142,7 @@ class sequtil:
 		
 		return genome_size, n50, max(contig_lens), min(contig_lens), gap, gc
 
-
-class seqmodify:
+class seqalter:
 
 	@classmethod
 	def filter_fasta(cls, fasta, outfasta, 
@@ -222,9 +207,9 @@ class seqmodify:
 		"""
 		
 		length = {}
-		in_handle = files.perfect_open(fasta)
-		for rec in SeqIO.parse(in_handle, 'fasta'):
-			length[str(rec.id)] = len(rec.seq)
+		fh = files.perfect_open(fasta)
+		for t, seq in SimpleFastaParser(fh):
+			length[t] = len(seq)
 		new = {}
 		new['length'] = length
 		new = pd.DataFrame.from_dict(new)
@@ -235,7 +220,7 @@ class seqmodify:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-	def extract_seq(in_file, idlist, in_type='fasta', low_level=False,
+	def extract_seq(in_file, idlist, in_type='fasta',
 					match_out=None, negmatch_out=None):
 		"""
 		Extract sequences you need.
@@ -271,26 +256,43 @@ class seqmodify:
 				except StopIteration:
 					print("Finished looping the db info in.")
 					break
+		if in_type != 'fasta' and in_type != 'fastq':
+			sys.exit('in_type can only be fasta or fastq.')
+
 		fh = files.perfect_open(in_file)
-		match = []
-		negmatch = []
-		
+		match, negmatch = {}, {}
+		if in_type == 'fasta':
+			for t, seq in SimpleFastaParser(fh):
+				if t.partition(' ')[0] in idlist:
+					match[t] = seq
+				else:
+					negmatch[i] = seq
+		else:
+			for t, seq, qual in FastqGeneralIterator(fh):
+				if t.partition(' ')[0] in idlist:
+					match[t] = [seq, qual]
+				else:
+					negmatch[t] = [seq, qual]
+		fh.close()
+
 		if match_out:
-			match_out_fh = open(match_out, 'w')
+			with open(match_out, 'w') as m_out:
+				if in_type == 'fasta':
+					for t in match:
+						m_out.write('>', t, '\n', match[t], '\n')
+				else:
+					for t in match:
+						m_out.write('@', t, '\n', match[t][0], '\n', '+', '\n', match[t][1], '\n')
 		if negmatch_out:
-			negmatch_out_fh = open(negmatch_out, 'w')
-		
-		hit = SimpleFastaParser if in_type='fasta' else FastqGeneralIterator 
-		for rec in SeqIO.parse(in_handle, in_type):
-			if str(rec.id).split(' ')[0] in idlist:
-				match.append(rec)
-			else:
-				negmatch.append(rec)
-		if match_out:
-			SeqIO.write(match, match_out, in_type)
-		if negmatch_out:
-			SeqIO.write(negmatch, negmatch_out, in_type)
-		return outseq, negmatch
+			with open(negmatch_out, 'w') as nm_out:
+				if in_type == 'fasta':
+					for t in negmatch:
+						nm_out.write('>', t, '\n', negmatch[t], '\n')
+				else:
+					for t in negmatch:
+						nm_out.write('@', t, '\n', negmatch[t][0], '\n', '+', '\n', negmatch[t][1], '\n')
+
+		return match, negmatch
 
 	def break_fasta(fasta, outfasta, symbol='N', exact=True):
 		"""
@@ -320,7 +322,7 @@ class seqmodify:
 			for i in fasta:
 				c, start, end = 0, 0, 0
 				contig = fasta[i]
-				gaps = re.findall(symbol, contig)
+				gaps = findall(symbol, contig)
 
 				if len(gaps) == 0:
 					out.write('>%s\n%s\n' % (i, contig))
@@ -352,6 +354,6 @@ class seqmodify:
 if __name__== '__main__':
 	import sys
 	fasta = sys.argv[1]
-#	seqmodify.break_fasta(fasta, aaaa)
-	seqmodify.filter_fasta(aaaa, fasta+'.more500', shorter=500)
+#	seqalter.break_fasta(fasta, aaaa)
+	seqalter.filter_fasta(aaaa, fasta+'.more500', shorter=500)
 
