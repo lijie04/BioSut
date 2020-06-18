@@ -264,7 +264,7 @@ class seqmodify:
 					chunk = df_reader.get_chunk(10000000)
 					idlist.extend(list(chunk.index))
 				except StopIteration:
-					logger.info("Finished looping the db info in.")
+					print("Finished looping the db info in.")
 					break
 
 		in_handle = files.perfect_open(in_file)
