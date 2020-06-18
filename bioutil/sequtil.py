@@ -230,7 +230,7 @@ class seqmodify:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-	def extract_seq(in_file, idlist, in_type='fasta'):
+	def extract_seq(in_file, idlist, in_type='fasta', match_out=None, negmatch_out=None):
 		"""
 		Extract sequences you need.
 		
@@ -242,22 +242,30 @@ class seqmodify:
 			idlist to extract corresponding sequences. id is the string before gap.
 		in_type=str
 			input sequences type, fasta or fastq, default is fasta
+		match_out:str
+			file to output positive matched items, default None.
+		negmatch_out:str
+			file to output negtive matched items, default None.
 
 		Result:
-		--------
+		-------
 			Return matched idlist sequences and negtive matched idlist sequences.
 		"""
 
 		if type(idlist) is str:
 			idlist = pd.read_csv(idlist, sep='\t', header=None, index_col=0).index
 		in_handle = files.perfect_open(in_file)
-		outseq = []
+		match = []
 		negmatch = []
 		for rec in SeqIO.parse(in_handle, in_type):
 			if str(rec.id).split(' ')[0] in idlist:
-				outseq.append(rec)
+				match.append(rec)
 			else:
 				negmatch.append(rec)
+		if match_out:
+			SeqIO.write(match, match_out, in_type)
+		if negmatch_out:
+			SeqIO.write(negmatch, negmatch_out, in_type)
 		return outseq, negmatch
 
 	def break_fasta(fasta, outfasta, symbol='N', exact=True):
