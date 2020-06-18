@@ -192,7 +192,8 @@ class seqmodify:
 		end = round(end * len(length)/float(100) + 0.5)
 		length = length.iloc[first:len(length)-end, ]
 
-		cls.extra_seq(fasta, length.index, outf=outfasta)
+		matched, _ = cls.extract_seq(fasta, length.index, in_type='fasta')
+		SeqIO.write(matched, outfasta, 'fasta')
 
 
 	def cal_length(fasta, outf=None, plot=False, bins=10):
@@ -229,41 +230,35 @@ class seqmodify:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-
-	def extra_seq(fasta, idlist, outf=None, match=True):
+	def extract_seq(in_file, idlist, in_type='fasta'):
 		"""
-		Extract FASTA sequence you need.
+		Extract sequences you need.
 		
 		Parameters:
 		-----------
-		fasta:str
-			Input FASTA file.
-		idlist:list or file contain a column of id, without header.
-			idlist to extract corresponding sequences.
-		outf=str
-			output file name, default stout
-		match=bool
-			extract the sequence matched id or in turn.
+		in_file:str
+			Input sequence file.
+		idlist:list or file contain a column of id, file without header.
+			idlist to extract corresponding sequences. id is the string before gap.
+		in_type=str
+			input sequences type, fasta or fastq, default is fasta
 
 		Result:
 		--------
-		Output FASTA file or stdout FASTA.
-
+			Return matched idlist sequences and negtive matched idlist sequences.
 		"""
+
 		if type(idlist) is str:
 			idlist = pd.read_csv(idlist, sep='\t', header=None, index_col=0).index
-		in_handle = files.perfect_open(fasta)
+		in_handle = files.perfect_open(in_file)
 		outseq = []
-		for rec in SeqIO.parse(in_handle, 'fasta'):
-			if match:
-				if str(rec.id) in idlist:
-					outseq.append(rec)
+		negmatch = []
+		for rec in SeqIO.parse(in_handle, in_type):
+			if str(rec.id).split(' ')[0] in idlist:
+				outseq.append(rec)
 			else:
-				if str(rec.id) not in idlist:
-					outseq.append(rec)
-		if outf:
-			SeqIO.write(outseq, outf, 'fasta')
-
+				negmatch.append(rec)
+		return outseq, negmatch
 
 	def break_fasta(fasta, outfasta, symbol='N', exact=True):
 		"""
