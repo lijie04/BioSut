@@ -5,17 +5,18 @@
 ##												   ##
 #####################################################
 
-import Bio
 from Bio import SeqIO
 from Bio.SeqIO.FastaIO import SimpleFastaParser
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
-import gzip
 import re
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from bioutil.system import files
+from bioutil.readseq import readseq
+
+## all Bio.SeqIO.FastaIO and QualityIO are transfered to lh3 readfq.py
 
 class sequtil:
 	
@@ -80,9 +81,12 @@ class sequtil:
 		Return a dict as id & sequence/length of seqeunce as key-value pairs.
 		"""
 		seqs = {}
-		for rec in SeqIO.parse(fasta, 'fasta'):
-			seqs[str(rec.id)] = str(rec.seq)
-			if length:seqs[str(rec.id)] = len(str(rec.seq))
+
+		fh = files.perfect_open(fasta)
+		for name, seq in readseq(fh):
+			seqs[name] = seq
+			if length:seqs[name] = len(seq)
+		fh.close()
 		return seqs
 
 	def read_fastq(fastq, length=False, qual=False):
@@ -99,12 +103,13 @@ class sequtil:
 		if length and qual:
 			sys.exit('Cant obtain qual is along with sequences, not sequence length.')
 		seqs = {}
-		fastq_handle = files.perfect_open(fastq)
+		fh = files.perfect_open(fastq)
 		# use low-level parser to deal with super large data
-		for t, seq, _ in FastqGeneralIterator(fastq_handle):
-			seqs[t] = seq
-			if length:seqs[t] = len(seq)
-			if qual:seqs[t] = [seq, _]
+		# use lh3's code, more efficiently.
+		for name, seq, _ in readseq(fh):
+			seqs[name] = seq
+			if length:seqs[name] = len(seq)
+			if qual:seqs[name] = [seq, _]
 		fastq_handle.close()
 		return seqs
 
@@ -266,10 +271,16 @@ class seqmodify:
 				except StopIteration:
 					print("Finished looping the db info in.")
 					break
-
-		in_handle = files.perfect_open(in_file)
+		fh = files.perfect_open(in_file)
 		match = []
 		negmatch = []
+		
+		if match_out:
+			match_out_fh = open(match_out, 'w')
+		if negmatch_out:
+			negmatch_out_fh = open(negmatch_out, 'w')
+		
+		hit = SimpleFastaParser if in_type='fasta' else FastqGeneralIterator 
 		for rec in SeqIO.parse(in_handle, in_type):
 			if str(rec.id).split(' ')[0] in idlist:
 				match.append(rec)
