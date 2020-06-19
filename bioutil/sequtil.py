@@ -220,8 +220,7 @@ class seqalter:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-	def extract_seq(in_file, idlist, in_type='fasta',
-					match_out=None, negmatch_out=None):
+	def extract_seq(in_file, idlist, in_type='fasta', outdir=None):
 		"""
 		Extract sequences you need.
 		
@@ -233,17 +232,16 @@ class seqalter:
 			idlist to extract corresponding sequences. id is the string before gap.
 		in_type=str
 			input sequences type, fasta or fastq, default is fasta
-		low_level:bool
-			bool value to process as low level or not. default False
-		match_out:str
-			file to output positive matched items, default None.
-		negmatch_out:str
-			file to output negtive matched items, default None.
+		outdir:str
+			output dir, default is the same as in_file directory.
 
 		Result:
 		-------
 			Return matched idlist sequences and negtive matched idlist sequences.
 		"""
+		
+		if in_type != 'fasta' and in_type != 'fastq':
+			sys.exit('in_type can only be fasta or fastq.')
 
 		if type(idlist) is str:
 			#if low_level:
@@ -251,55 +249,41 @@ class seqalter:
 			idlist = []
 			while True:
 				try:
-					chunk = df_reader.get_chunk(10000000)
+					chunk = df_reader.get_chunk(500000)
 					idlist.extend(list(chunk.index))
 				except StopIteration:
-					print("Finished looping the db info in.")
+					print("Finished looping the idlist in.")
 					break
-		if in_type != 'fasta' and in_type != 'fastq':
-			sys.exit('in_type can only be fasta or fastq.')
+		
+		if outdir:
+			outdir = path.get_path(in_file)
+
+		prefix = outdir + '/' + files.get_prefix(in_file)
 
 		fh = files.perfect_open(in_file)
 		match, negmatch = {}, {}
 		
-		for t, seq, _ in readseq(fh):
-			if t.partition(' ')[0] in idlist:
-				match[t] = [seq, _]
-			else:
-				negmatch[t] = [seq, _]
+		match_out = open(prefix + '.match.' + in_type, 'w')
+		negmatch_out = open(prefix + '.negmatch.' + in_type, 'w')
+		
+		if in_type == 'fasta':
+		
+			for t, seq, _ in readseq(fh):
+				if t.partition(' ')[0] in idlist:
+					match_out.write('>%s\n%s\n' % (t, seq))
+				else:
+					negmatch_out.write('>%s\n%s\n' % (t, seq))
+		else:
+			
+			for t, seq, qual in readseq(fh):
+				if t.partition(' ')[0] in idlist:
+					match_out.write('@%s\n%s\n+\n%s\n' % (t, seq, qual))
+				else:
+					negmatch_out.write('@%s\n%s\n+\n%s\n' % (t, seq, qual))
 
-		#if in_type == 'fasta':
-		#	for t, seq in SimpleFastaParser(fh):
-		#		if t.partition(' ')[0] in idlist:
-		#			match[t] = seq
-		#		else:
-		#			negmatch[i] = seq
-		#else:
-		#	for t, seq, qual in FastqGeneralIterator(fh):
-		#		if t.partition(' ')[0] in idlist:
-		#			match[t] = [seq, qual]
-		#		else:
-		#			negmatch[t] = [seq, qual]
 		fh.close()
-
-		if match_out:
-			with open(match_out, 'w') as m_out:
-				if in_type == 'fasta':
-					for t in match:
-						m_out.write('>', t, '\n', match[t][0], '\n')
-				else:
-					for t in match:
-						m_out.write('@', t, '\n', match[t][0], '\n', '+', '\n', match[t][1], '\n')
-		if negmatch_out:
-			with open(negmatch_out, 'w') as nm_out:
-				if in_type == 'fasta':
-					for t in negmatch:
-						nm_out.write('>', t, '\n', negmatch[t][0], '\n')
-				else:
-					for t in negmatch:
-						nm_out.write('@', t, '\n', negmatch[t][0], '\n', '+', '\n', negmatch[t][1], '\n')
-
-		return match, negmatch
+		match_out.close()
+		negmatch_out.close()
 
 	def break_fasta(fasta, outfasta, symbol='N', exact=True):
 		"""
