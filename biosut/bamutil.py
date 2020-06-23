@@ -1,14 +1,14 @@
 
 #####################################################################
 ##																	#
-# bam_utils.py -- some bam file related util functions				#
+# bamutil.py -- some bam file related util functions				#
 ##																	#
 ####################################################################
 
 
 import os
-from bioutil.system import path
-from bioutil.sequtil import sequtil
+from biosut.biosys import path
+from biosut.sequtil import sequtil
 import pysam as ps
 from re import findall
 import pandas as pd
@@ -100,26 +100,28 @@ class bamutil:
 		"""
 		Extract reads from bam according the reference provided.
 
-		Parameters:
-		bam:str
+		Parameters
+		----------
+		bam : str
 			bam file to process
-		ref:str
+		ref : str
 			referece fasta file to use
-		out_prefix:str
+		out_prefix : str
 			output prefix to use for output files, must include paths.
 		
-		secondary=bool
+		secondary : bool, default is True
 			keep secondary alignments.
-		qcfail=bool
+		qcfail : bool, default is True
 			set to keep qcfail alignments according to samtools principle.
-		duplicates=bool
+		duplicates : bool, deafult is True
 			set to keep duplicates alignments.
-		supplementary=bool
+		supplementary : bool, default is True
 			set to keep supplementary alignments.
-		reorder=bool
+		reorder : bool, default is True
 			set to reorder paired sequences, as they are not in same order originally.
 		
-		Results:
+		Results
+		-------
 			Out put extracted reads into paired 1&2 and unpaired 3 types.
 			out_prefix.1.fastq.gz, out_prefix.2.fastq.gz, out_prefix.forward.fastq.gz, out_prefix.reverse.fastq.gz and stats.xls file to tell you how many reads you have
 			## And return paired fastq 1 &2, unpaired forward fastq 1 and reverse fastq 2 file.

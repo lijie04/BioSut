@@ -1,34 +1,36 @@
-#!/usr/bin/env python3
-
 # -*- coding:utf-8 -*-
 
-from distutils.core import setup
-
+from setuptools import setup, find_packages
 import os
-import sys
 
 def version():
 	vers_file = os.path.dirname(os.path.realpath(__file__)) + '/VERSION'
 	
 	if os.path.isfile(vers_file):
-		version = open(vers_file).readline().strip()
-
-		print('You are installing bioutil %s' % version)
-		return version
+		return open(vers_file.readline().strip())
 	else:
-		sys.exit('Dont know your package version, didnt find VERSION file')
+		return none
 
+setup(
+	name = 'biosut',
+	description = 'biology small suite for related bioinformatics operations.',
+	version = version(),
+	url='https://github.com/jlli6t/biosut' # optional
 
-if __name__ == '__main__':
+	author = 'M.M Jie Li', 
+	author_email = 'mm.jlli6t@gmail.com',
+	maintainer = 'M.M Jie Li',
+	maintainer_email = 'mm.jlli6t@gmail.com',
 
-	setup(
-		name = 'bioutil',
-		version = version(),
-		author = 'Jie Li',
-		author_email = 'jeveylijie@gmail.com',
-		url = 'Not now',
-		description = 'bioutil lib for bio related bioinformatics operations.',
-		license = 'Not now',
-		platform = 'Linux',
-		packages = ['bioutil']
-		)
+	classifiers = [
+				'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+				'Programming Language :: Python :: 3 :: Only',
+				'Operating System :: Unix',
+		],
+	keywords = 'biology bioinformatics',
+	
+	packages = find_packages(),
+	python_requires = '>=3.6',
+
+)
+

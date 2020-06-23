@@ -7,12 +7,12 @@
 
 from re import findall
 import pandas as pd
-from bioutil.system import files
+from biosut.biosys import files
 
 class sequtil:
-	
+
 	@classmethod
-	def cal_seq_gc(cls, seq, length=False):
+	def cal_seq_gc(cls, seq, length:bool=False):
 		"""
 		Count sequence gc ratio and length.
 		
@@ -83,7 +83,7 @@ class sequtil:
 					break
 	
 	@classmethod
-	def read_seq(cls, fl, length=False, qual=False):
+	def read_seq(cls, fl : str, length : bool=False, qual : bool=False):
 		"""
 		Read fasta format file in.
 		Parameters:
@@ -111,14 +111,14 @@ class sequtil:
 		"""
 		Evaluate genome and return genome features.
 
-		Parameters:
-		-----------
-		genome:file
+		Parameters
+		----------
+		genome : file
 			Input file contains contigs or a FASTA file.
 
-		Returns:
-		--------
-		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
+		Returns
+		-------
+			Return genome size, contig number, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
 		fh = files.perfect_open(genome)
 		gap, gc, contig_num, contig_len = 0, 0, 0, []
@@ -145,31 +145,31 @@ class sequtil:
 class seqalter:
 	@classmethod
 	def filter_fasta(cls, fasta, outfasta, 
-				longer=None, shorter=None,
-				first=0, end=0):
+				longer : bool = None, shorter:bool = None,
+				first = 0, end = 0):
 		"""
 		Trim sequences according length.
 
-		Parameters:
-		-----------
-		fasta:str
+		Parameters
+		----------
+		fasta : str
 			input FASTA file.
-		outfasta:str
+		outfasta : str
 			output FASTA file.
-		longer=int
+		longer : int
 			exclude sequence longer than this cutoff, default None.
-		shorter=int
+		shorter : int
 			exclude sequence shorter than this cutoff, default None.
-		first=int
+		first : int or float
 			longest top n% sequences will be excluded, default 0.
-		end=int
+		end : int or float
 			shortest top n% sequences will be excluded, default 0.
 
-		Returns:
-		--------
-		Trimmed FASTA
+		Returns
+		-------
+			Trimmed FASTA
 		"""
-		
+
 		length = cls.cal_length(fasta)
 		
 		if longer:length = length.loc[length[length.length<=longer].index]
@@ -184,25 +184,24 @@ class seqalter:
 		matched, _ = cls.extract_seq(fasta, length.index, in_type='fasta')
 		SeqIO.write(matched, outfasta, 'fasta')
 
-
-	def cal_length(fasta, outf=None, plot=False, bins=10):
+	def cal_length(fasta, outf = None, plot : bool = False, bins = 10):
 		"""
 		calculate sequences length.
 		
-		Parameters:
-		-----------
-		fasta:str
+		Parameters
+		----------
+		fasta : str
 			fasta input file
-		outf=int
-			output length file, default is None.
-		plot=bool
-			plot a hist of fasta length, default is False. It has to set with outf
-		bins=int
-			number of bins to plot, default 10.
+		outf : str, default None
+			Output length file.
+		plot : bool, default False
+			Plot a hist of fasta length. It has to set with `outf`.
+		bins : int, default is 10.
+			Number of bins to plot.
 		
-		Returns:
-		--------
-		Return dataframe contain FASTA length.
+		Returns
+		-------
+			Return dataframe contain FASTA length.
 		"""
 		length = {}
 		fh = files.perfect_open(fasta)
@@ -218,17 +217,17 @@ class seqalter:
 				plt.savefig(outf+'.hist.pdf', dpi=600)
 		return new
 
-	def extract_seq(in_file, idlist, in_type='fasta', outdir=None):
+	def extract_seq(in_file, idlist, in_type = 'fasta', outdir = None):
 		"""
 		Extract sequences you need.
 		
-		Parameters:
-		-----------
-		in_file:str
+		Parameters
+		----------
+		in_file : str
 			Input sequence file.
-		idlist:list or file contain a column of id, file without header.
+		idlist : list, or file contain a column of id, file without header.
 			idlist to extract corresponding sequences. id is the string before gap.
-		in_type=str
+		in_type : str, default in_type=fasta
 			input sequences type, fasta or fastq, default is fasta
 		outdir:str
 			output dir, default is the same as in_file directory.
@@ -281,7 +280,7 @@ class seqalter:
 		match_out.close()
 		negmatch_out.close()
 
-	def split_fasta(fasta, outfasta, symbol='N', exact=True):
+	def split_fasta(fasta, outfasta, symbol = 'N', exact : bool = True):
 		"""
 		Use this function to break sequence using symbol (e.g. Ns).
 
