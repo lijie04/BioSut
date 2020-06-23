@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
-
 # -*- coding:utf-8 -*-
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 import os
 import sys
@@ -19,16 +17,22 @@ def version():
 		sys.exit('Dont know your package version, didnt find VERSION file')
 
 
-if __name__ == '__main__':
+setup(
+	name = 'bioutil',
+	version = version(),
+	description = 'bioutil library for bio related bioinformatics operations.',
+	url='https://github.com/jlli6t/bioutil',
+	author = 'M.M Jie Li',
+	author_email = 'mm.jlli6t@gmail.com',
 
-	setup(
-		name = 'bioutil',
-		version = version(),
-		author = 'Jie Li',
-		author_email = 'mm.jlli6t@gmail.com',
-		url = 'Not now',
-		description = 'bioutil library for bio related bioinformatics operations.',
-		license = 'Not now',
-		platform = 'Linux',
-		packages = ['bioutil']
-		)
+	classifiers = [
+					'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+					'Programming Language :: Python :: 3 :: Only',
+					'Operating System :: Unix',
+					],
+	packages = find_packages(),
+	python_requires = '>=3.6',
+
+	)
+
+
