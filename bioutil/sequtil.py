@@ -5,56 +5,38 @@
 #												   	#
 #####################################################
 
-#from Bio.SeqIO.FastaIO import SimpleFastaParser
-#from Bio.SeqIO.QualityIO import FastqGeneralIterator
 from re import findall
 import pandas as pd
 from bioutil.system import files
-from bioutil.readseq import readseq
 
 class sequtil:
 	
 	@classmethod
-	def cal_fasta_gc(cls, seqs, len_cutoff=0):
+	def cal_seq_gc(cls, seq, length=False):
 		"""
-		Count fasta file's sequence gc content and length.
+		Count sequence gc ratio and length.
 		
 		Parameters:
-		seqs:	fasta file
-		len_cutoff=cutoff of length to not count gc for this sequence. default 0.
+		-----------
+		seq:str
+			FASTA/FASTQ(.gz) file
+		length:bool
+			return length or not. default False.
+		len_cutoff=int
+			sequence below this length wont include, default 0 means count all sequences.
 
-		Result:
-		Return a dict with key-value pairs are seqid and list[gc ratio, length of seq]
+		Returns:
+		--------
+			Return a dict with key-value pairs are seqid and list[gc ratio]
 		"""
 		gc = {}
+		# use perfect_open to deal with*.gz files
 		fh = files.perfect_open(seqs)
-			# use low-level parser to speed up when dealing with super large data
-		for t, seq in SimpleFastaParser(fh):
-			if len(seq) >= len_cutoff:
-				gc[t] = [cls._count_string_gc(seq)/len(seq)*100., len(seq)]
-		fh.close()
-		return gc
-	
-	@classmethod
-	def cal_fastq_gc(cls, seqs, len_cutoff=0):
-		"""
-		Count fastq file's sequence gc content and length.
-		
-		Parameters:
-		seqs:	fastq file
-		len_cutoff=cutoff of length to not count gc for this sequence, default is 0, means will count all sequences' length.
-
-		Result:
-		Return a dict with key-value pairs are seqid and list[gc ratio, length of seq]
-		"""
-
-		gc = {}
-		fh = files.perfect_open(seqs)
-		# with open(seqs) as fastq_handle: this can't deal with *.gz file.
-		# use low-level parser to speed up when dealing with large data
-		for t, seq, _ in FastqGeneralIterator(fh):
-			if len(seq) >= len_cutoff:
-				gc[t] = cls._count_string_gc(seq)/len(seq)*100.
+		# use low-level parser to speed up when dealing with super large data
+		# Jie, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
+		# it's acceptable while considering file size.
+		for t, seq, _ in cls.seq_reader(fh):
+			gc[t] = [cls._count_string_gc(seq)/len(seq)*100., len(seq)]
 		fh.close()
 		return gc
 	
@@ -62,49 +44,65 @@ class sequtil:
 		s = s.upper()
 		return s.count('G') + s.count('C')
 
-	def read_fasta(fasta, length=False):
+	# this is a copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
+	def seq_reader(fh):
+		"""
+		sequence generator.
+		fh:str
+			file handle.
+		"""
+		last = None # this is a buffer keeping the last unprocessed line
+		while True: # mimic closure; is it a bad idea?
+			if not last: # the first record or a record following a fastq
+				for l in fp: # search for the start of the next record
+					if l[0] in '>@': # fasta/q header line
+						last = l[:-1] # save this line
+						break
+			if not last: break
+			#name, seqs, last = last[1:].partition(" ")[0], [], None
+			name, seqs, last = last[1:], [], None # Jie, modified to keep the comment of id.
+			for l in fp: # read the sequence
+				if l[0] in '@+>':
+					last = l[:-1]
+					break
+				seqs.append(l[:-1])
+			if not last or last[0] != '+': # this is a fasta record
+				yield name, ''.join(seqs), None  # yield a fasta record
+				if not last: break
+			else: # this is a fastq record
+				seq, leng, seqs = ''.join(seqs), 0, []
+				for l in fp: # read the quality
+					seqs.append(l[:-1])
+					leng += len(l) - 1
+					if leng >= len(seq): # have read enough quality
+						last = None
+						yield name, seq, ''.join(seqs) # yield a fastq record
+						break
+				if last: # reach EOF before reading enough quality
+					yield name, seq, None # yield a fasta record instead
+					break
+	
+	@classmethod
+	def read_seq(cls, fl, length=False, qual=False):
 		"""
 		Read fasta format file in.
 		Parameters:
 		-----------
-		fasta:str
-			fasta format file
+		fl:str
+			FASTA/FASTQ(.gz) file
 		length:bool
 			output length instead of sequence, default False.
 		
 		Returns:
 		--------
-		Return a dict as id & sequence/length of seqeunce as key-value pairs.
+			Return a dict contain seq id as key and seq as value.
 		"""
+
 		seqs = {}
 		fh = files.perfect_open(fasta)
-		for t, seq in SimpleFastaParser(fh):
+		for t, seq, _ in seq_reader(fh):
 			seqs[t] = seq
 			if length:seqs[t] = len(seq)
-		fh.close()
-		return seqs
-
-	def read_fastq(fastq, length=False, qual=False):
-		"""
-		Read fastq format file in.
-
-		Parameters:
-		-----------
-		fastq:str
-			fastq format file in
-		length:bool
-			output length.
-		"""
-		if length and qual:
-			sys.exit('Cant obtain qual is along with sequences, not sequence length.')
-		seqs = {}
-		fh = files.perfect_open(fastq)
-		# use lh3's code, more efficiently.
-		# use low-level parser to deal with super large data, faster than lh3 readfq
-		for t, seq, _ in FastqGeneralIterator(fh):
-			seqs[t] = seq
-			if length:seqs[t] = len(seq)
-			if qual:seqs[t] = [seq, _]
 		fh.close()
 		return seqs
 
@@ -123,27 +121,28 @@ class sequtil:
 		Return genome size, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
 		fh = files.perfect_open(genome)
-		gap, gc, contig_lens = 0, 0, []
-		for t, seq in SimpleFastaParser(fh):
-			contig_lens.append(len(seq))
+		gap, gc, contig_num, contig_len = 0, 0, 0, []
+		for t, seq, _ in seq_reader(fh):
+			contig_num += 1
+			contig_len.append(len(seq))
 			gap += len(findall('N+', seq))
 			gc += cls._count_string_gc(seq) 
-
-		genome_size = sum(contig_lens)
+		
+		genome_size = sum(contig_len)
 		gc = round(gc/genome_size*100., 2)
 
-		contig_lens.sort(reverse=True)
+		contig_len.sort(reverse=True)
 		sum_len = 0
-		for i in contig_lens:
+		for i in contig_len:
 			sum_len += i
 			if sum_len >= genome_size*0.5:
 				n50 = i
 				break
 		
-		return genome_size, n50, max(contig_lens), min(contig_lens), gap, gc
+		return genome_size, contig_num, n50, max(contig_len), min(contig_len), gap, gc
+
 
 class seqalter:
-
 	@classmethod
 	def filter_fasta(cls, fasta, outfasta, 
 				longer=None, shorter=None,
@@ -172,7 +171,7 @@ class seqalter:
 		"""
 		
 		length = cls.cal_length(fasta)
-
+		
 		if longer:length = length.loc[length[length.length<=longer].index]
 		if shorter:length = length.loc[length[length.length>=shorter].index]
 
@@ -205,10 +204,9 @@ class seqalter:
 		--------
 		Return dataframe contain FASTA length.
 		"""
-		
 		length = {}
 		fh = files.perfect_open(fasta)
-		for t, seq in SimpleFastaParser(fh):
+		for t, seq in sequtil.seq_reader(fh):
 			length[t] = len(seq)
 		new = {}
 		new['length'] = length
@@ -265,16 +263,14 @@ class seqalter:
 		
 		match_out = open(prefix + '.match.' + in_type, 'w')
 		negmatch_out = open(prefix + '.negmatch.' + in_type, 'w')
-		
+
 		if in_type == 'fasta':
-		
 			for t, seq, _ in readseq(fh):
 				if t.partition(' ')[0] in idlist:
 					match_out.write('>%s\n%s\n' % (t, seq))
 				else:
 					negmatch_out.write('>%s\n%s\n' % (t, seq))
 		else:
-			
 			for t, seq, qual in readseq(fh):
 				if t.partition(' ')[0] in idlist:
 					match_out.write('@%s\n%s\n+\n%s\n' % (t, seq, qual))
@@ -285,7 +281,7 @@ class seqalter:
 		match_out.close()
 		negmatch_out.close()
 
-	def break_fasta(fasta, outfasta, symbol='N', exact=True):
+	def split_fasta(fasta, outfasta, symbol='N', exact=True):
 		"""
 		Use this function to break sequence using symbol (e.g. Ns).
 
@@ -307,41 +303,38 @@ class seqalter:
 	
 		symbol_len = len(symbol)
 		symbol += '+' # make a 're' match to indicate one or more symbol
-		fasta = sequtil.read_fasta(fasta)
+		fh = files.perfect_open(fasta)
 		print(symbol, symbol_len)
 		with open(outfasta, 'w') as out:
-			for i in fasta:
+			for t, seq, _ in sequtil.seq_reader(fh):
 				c, start, end = 0, 0, 0
-				contig = fasta[i]
-				gaps = findall(symbol, contig)
+				gaps = findall(symbol, seq)
 
 				if len(gaps) == 0:
-					out.write('>%s\n%s\n' % (i, contig))
+					out.write('>%s\n%s\n' % (i, seq))
 					continue
 
 				for gap in gaps:
-					pos = contig[end:].find(gap)
+					pos = seq[end:].find(gap)
 					end += pos
 					## use symbol_len to replace, to judge whether to stop here or not.
-					if len(gap) == symbol_len:
+					if len(gap) == symbol_len: # exact a 'gap' to split fasta
 						c += 1
-						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, contig[start:end]))
+						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, seq[start:end]))
 						start = end + len(gap)
 						end += len(gap)
 						continue
-					if exact:
+					if exact: # N is more than expected.
 						end += len(gap)
 					else:
 						c += 1
-						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, contig[start:end]))
+						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, seq[start:end]))
 						start = end + len(gap)
 						end += len(gap)
 				## make the last one, cause n gaps will chunk sequences into n+1 small sequences.
-				out.write('>%s_%d|len=%s\n%s\n' % (i, c+1, len(contig)-start, contig[start:]))
-
+				out.write('>%s_%d|len=%s\n%s\n' % (i, c+1, len(seq)-start, seq[start:]))
 
 # for test
-
 if __name__== '__main__':
 	import sys
 	fasta = sys.argv[1]
