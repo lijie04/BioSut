@@ -45,11 +45,11 @@ class sequtil:
 		return s.count('G') + s.count('C')
 
 	# this is a copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
-	def seq_reader(fh):
+	def seq_reader(fp):
 		"""
-		sequence generator.
-		fh:str
-			file handle.
+		Sequence generator.
+		fp : str
+			Input file handle.
 		"""
 		last = None # this is a buffer keeping the last unprocessed line
 		while True: # mimic closure; is it a bad idea?
@@ -122,7 +122,7 @@ class sequtil:
 		"""
 		fh = files.perfect_open(genome)
 		gap, gc, contig_num, contig_len = 0, 0, 0, []
-		for t, seq, _ in seq_reader(fh):
+		for t, seq, _ in cls.seq_reader(fh):
 			contig_num += 1
 			contig_len.append(len(seq))
 			gap += len(findall('N+', seq))

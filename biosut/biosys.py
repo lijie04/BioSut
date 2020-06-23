@@ -309,10 +309,10 @@ class files:
 		-------
 			Exit and report errors if file is empty.
 		"""
-	
-		if not os.path.getsize(f):
-			logger.error('File * %s * is empty.', f)
-			sys.exit()
+		for f in fls:	
+			if not os.path.getsize(f):
+				logger.error('File * %s * is empty.', f)
+				sys.exit()
 
 	def get_prefix(f, times : int=1, include_path : bool=False):
 		"""
