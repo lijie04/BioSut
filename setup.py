@@ -25,9 +25,9 @@ if __name__ == '__main__':
 		name = 'bioutil',
 		version = version(),
 		author = 'Jie Li',
-		author_email = 'jeveylijie@gmail.com',
+		author_email = 'mm.jlli6t@gmail.com',
 		url = 'Not now',
-		description = 'bioutil lib for bio related bioinformatics operations.',
+		description = 'bioutil library for bio related bioinformatics operations.',
 		license = 'Not now',
 		platform = 'Linux',
 		packages = ['bioutil']
