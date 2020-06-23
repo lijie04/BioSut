@@ -18,10 +18,10 @@ def version():
 
 
 setup(
-	name = 'bioutil',
+	name = 'biosut',
 	version = version(),
 	description = 'bioutil library for bio related bioinformatics operations.',
-	url='https://github.com/jlli6t/bioutil',
+	url='https://github.com/jlli6t/biosut',
 	author = 'M.M Jie Li',
 	author_email = 'mm.jlli6t@gmail.com',
 
