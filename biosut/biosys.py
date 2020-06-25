@@ -348,7 +348,7 @@ class files:
 			Return file handle
 		"""
 		
-		if '.gz$' in f:
+		if '.gz' in f:
 			import gzip
 			return gzip.open(f, 'rt')
 		else:
