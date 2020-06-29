@@ -12,21 +12,21 @@ from biosut.biosys import files
 class sequtil:
 
 	@classmethod
-	def cal_seq_gc(cls, seq, length:bool=False):
+	def cal_seq_gc(cls, seq, length : bool = False, len_cutoff : int = 0):
 		"""
 		Count sequence gc ratio and length.
 		
-		Parameters:
-		-----------
-		seq:str
+		Parameters
+		----------
+		seq : str
 			FASTA/FASTQ(.gz) file
-		length:bool
-			return length or not. default False.
-		len_cutoff=int
-			sequence below this length wont include, default 0 means count all sequences.
+		length : bool, default False.
+			return length or not.
+		len_cutoff : int, default 0.
+			sequence below this length wont include, 0 means count all sequences.
 
-		Returns:
-		--------
+		Returns
+		-------
 			Return a dict with key-value pairs are seqid and list[gc ratio]
 		"""
 		gc = {}
@@ -36,13 +36,32 @@ class sequtil:
 		# Jie, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
 		# it's acceptable while considering file size.
 		for t, seq, _ in cls.seq_reader(fh):
-			gc[t] = [cls._count_string_gc(seq)/len(seq)*100., len(seq)]
+			gc[t] = [cls.count_string_gc(seq)/len(seq)*100., len(seq)]
 		fh.close()
 		return gc
 	
-	def _count_string_gc(s):
-		s = s.upper()
-		return s.count('G') + s.count('C')
+	def count_string_gc(string):
+		"""
+		Count string G/C number.
+
+		Parameters
+		----------
+		string : str
+
+		Returns
+		-------
+			Return number of GC symbols.
+
+		Examples
+		--------
+		>>> from biosut.sequtil.sequtil iport count_string_gc
+		>>> string = "GATDGGBKEREWCGSGCGEW"
+		>>> gc = count_string_gc(string)
+		>>> gc
+		7
+		"""
+		string = string.upper()
+		return string.count('G') + string.count('C')
 
 	# this is a copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 	def seq_reader(fp):
@@ -86,15 +105,18 @@ class sequtil:
 	def read_seq(cls, fl : str, length : bool=False, qual : bool=False):
 		"""
 		Read fasta format file in.
-		Parameters:
-		-----------
-		fl:str
+
+		Parameters
+		----------
+		fl : str
 			FASTA/FASTQ(.gz) file
-		length:bool
-			output length instead of sequence, default False.
+		length : bool, default False.
+			output length instead of sequence.
+		qual : bool, default False.
+			output qual or not.
 		
-		Returns:
-		--------
+		Returns
+		-------
 			Return a dict contain seq id as key and seq as value.
 		"""
 
