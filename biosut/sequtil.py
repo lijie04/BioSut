@@ -306,20 +306,20 @@ class seqalter:
 		"""
 		Use this function to break sequence using symbol (e.g. Ns).
 
-		Parameters:
-		-----------
-		fasta:str
+		Parameters
+		----------
+		fasta : str
 			Input FASTA file.
-		outfasta:str
+		outfasta : str
 			Output FASTA file.
-		symbol=str
+		symbol : str, default 'N'
 			symbol to use to break FASTA. [N]
-		exact=bool
+		exact : bool, default True
 			exact symbol or not, e.g, set symbol is NN, exact=True will not NNN or NNNN as a cut point. [True]
 
-		Result:
-		-------
-		Output a FASTA file with broken using symbol.
+		Result
+		------
+			Output a FASTA file.
 		"""
 	
 		symbol_len = len(symbol)
