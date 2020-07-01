@@ -1,26 +1,38 @@
-# bioutil 0.0.6 (2020-05-31)
-Add some new features to sequtil.py
+osut
+**
+biosut ("biology suite tool") is a packge containing some biology-related bioinformatics operations on sequences, file
+**
 
-# biotuil 0.0.5 (2020-05-28)
-Fixed some minor bugs, and add a path.get_path function to return abusolute path of inputs.
+## Installation
+Install biosut through PyPi:
+```
+pip3 install biosut
+```
 
-# bioutil 0.0.4 (2020-05-27)
-add sequtil.seqmodify.break_fasta function.
+## usage
+### Module biosys
+```
+from biosut.biosys import files,path
+```
+#### files related operations
+For example, check the existance of a file/files and check if it's empty.
+```
+f = 'file.txt'
+files.check_exist(f, check_empty=True)
+```
+Get prefix of a file.
+```
+files.get_prefix(f, include_path=True)
+```
 
-# bioutil 0.0.3 (2020-05-26)
-make path.realpth can deal many paths at one time.
-
-# bioutil 0.0.2
-## fixed system module subprocess import error in some functions
-
-
-# bioutil 0.0.1
-## biology related operations in bioinformatics
-### 1.system
-this module include linux system related operations functions
-### 2.sequtil
-this module include sequnces file operations functions, e.g. fasta/q operations
-### 3.bamutil
-this module include bam operations e.g index bam, sort bam, retrieve reads from bam.
-
+#### path related operations
+For example, make sure a directory exists.
+```
+o = './test/a'
+path.sure_exist(o)
+```
+or
+```
+new.o = path.sure_exist(o)
+```
 
