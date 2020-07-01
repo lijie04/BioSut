@@ -1,4 +1,3 @@
-osut
 **
 biosut ("biology suite tool") is a packge containing some biology-related bioinformatics operations on sequences, file
 **
