@@ -1,6 +1,4 @@
-**
-biosut ("biology suite tool") is a packge containing some biology-related bioinformatics operations on sequences, file
-**
+**biosut ("biology suite tool") is a packge containing some biology-related bioinformatics operations on sequences, file**
 
 ## Installation
 Install biosut through PyPi:
@@ -8,7 +6,7 @@ Install biosut through PyPi:
 pip3 install biosut
 ```
 
-## usage
+## Usage
 ### Module biosys
 ```
 from biosut.biosys import files,path
@@ -34,4 +32,7 @@ or
 ```
 new.o = path.sure_exist(o)
 ```
+
+# Summary
+
 
