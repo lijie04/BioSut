@@ -10,7 +10,8 @@ import pandas as pd
 from biosut.biosys import files
 
 class sequtil:
-	
+
+	def __init__
 	@classmethod
 	def fq2fa(cls, fq, outfa):
 		"""
