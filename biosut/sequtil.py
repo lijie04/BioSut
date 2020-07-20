@@ -1,16 +1,16 @@
+"""
+The :mod:`biosut.sequtil` includes utilities to operate sequence files.
+"""
 
-#####################################################
-#												   	#
-# seqsutils.py -- fasta and fastq files utils		#
-#												   	#
-#####################################################
+# Author: Jie Li <mm.jlli6t@gmail.com>
+# License: GNU v3.0
 
 from re import findall
 import pandas as pd
-from biosut.biosys import files
+from .biosys import files
 
 class sequtil:
-	
+
 	@classmethod
 	def fq2fa(cls, fq, outfa):
 		"""
@@ -27,6 +27,7 @@ class sequtil:
 		------
 			Output converted FASTA file.
 		"""
+
 		fh = files.perfect_open(fq)
 		with open(outfa, 'w') as outf:
 			for t, seq, _ in cls.seq_reader(fh):
@@ -34,7 +35,7 @@ class sequtil:
 		fh.close()
 	
 	@classmethod
-	def cal_seq_gc(cls, seq, length : bool = False, len_cutoff : int = 0):
+	def seq_gc(cls, seq, length : bool = False, len_cutoff : int = 0):
 		"""
 		Count sequence gc ratio and length.
 		
@@ -58,11 +59,11 @@ class sequtil:
 		# Jie, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
 		# it's acceptable while considering file size.
 		for t, seq, _ in cls.seq_reader(fh):
-			gc[t] = [cls.count_string_gc(seq)/len(seq)*100., len(seq)]
+			gc[t] = [cls._string_gc(seq)/len(seq)*100., len(seq)]
 		fh.close()
 		return gc
 	
-	def count_string_gc(string):
+	def _string_gc(string):
 		"""
 		Count string G/C number.
 

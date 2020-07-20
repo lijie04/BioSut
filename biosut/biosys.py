@@ -1,15 +1,9 @@
-#####################################################################
-#																	#
-#biosys.py - some system operations related to biology?				#
-#																	#
-#####################################################################
+"""
+The :mod:`biosys` includes system operations related to biology.
+"""
 
-__author__ = 'M.M Jie Li'
-__copyright__ = 'Copyright 2018'
-__credits__ = ['M.M Jie Li']
-__license__ = 'GPL3'
-__maintainer__ = ['M.M Jie Li']
-__email__ = 'mm.jlli6t near gmail.com'
+# Author Jie Li (mm.jlli6t@gmail.com)
+# License: GNU v3.0
 
 import os
 import sys
@@ -85,8 +79,8 @@ class path:
 		dirs : str
 			directory (s) to check.
 
-		Results:
-		--------
+		Results
+		-------
 			Exit and report error msg while input directory (s) is empty.
 		"""
 

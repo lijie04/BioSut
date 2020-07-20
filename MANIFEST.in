@@ -1,0 +1,8 @@
+include MANIFEST.in
+include COPYING.txt
+include README.md
+
+global-exclude *.xls
+global-exclude *.png
+global-exclude __pycache__
+
