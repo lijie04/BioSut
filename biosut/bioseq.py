@@ -1,5 +1,5 @@
 """
-The :mod:`biosut.sequtil` includes utilities to operate sequence files.
+The :mod:`biosut.bioseq` includes utilities to operate sequence files.
 """
 
 # Author: Jie Li <mm.jlli6t@gmail.com>
@@ -152,7 +152,7 @@ class sequtil:
 		return seqs
 
 	@classmethod
-	def evaluate_genome(cls, genome):
+	def evaluate_genome(cls, genome, length:int=500):
 		"""
 		Evaluate genome and return genome features.
 
@@ -160,14 +160,18 @@ class sequtil:
 		----------
 		genome : file
 			Input file contains contigs or a FASTA file.
+		length : int, default 500
+			sequences below this length will be dropped.
 
 		Returns
 		-------
 			Return genome size, contig number, n50, maximal contig, minimal contig, gap number, gc ratio.
 		"""
+
 		fh = files.perfect_open(genome)
 		gap, gc, contig_num, contig_len = 0, 0, 0, []
 		for t, seq, _ in cls.seq_reader(fh):
+			if len(seq) < length:continue
 			contig_num += 1
 			contig_len.append(len(seq))
 			gap += len(findall('N+', seq))
@@ -378,10 +382,4 @@ class seqalter:
 				## make the last one, cause n gaps will chunk sequences into n+1 small sequences.
 				out.write('>%s_%d|len=%s\n%s\n' % (i, c+1, len(seq)-start, seq[start:]))
 
-# for test
-if __name__== '__main__':
-	import sys
-	fasta = sys.argv[1]
-#	seqalter.break_fasta(fasta, aaaa)
-	seqalter.filter_fasta(aaaa, fasta+'.more500', shorter=500)
 

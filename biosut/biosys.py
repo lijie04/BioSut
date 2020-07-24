@@ -1,5 +1,5 @@
 """
-The :mod:`biosys` includes system operations related to biology.
+The :mod:`biosut.biosys` includes system operations related to biology.
 """
 
 # Author Jie Li (mm.jlli6t@gmail.com)
