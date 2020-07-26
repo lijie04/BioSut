@@ -15,31 +15,12 @@ from numpy import unique
 from biosut.biosys import path, files
 
 class diamond:
-	
 
 	@classmethod
-	def exe(cls, query, d_type, outdir, arg):
+	def align(cls, query, d_type, outdir, arg):
 
 		taxid = {'Archaea':'2157', 'Bacteria':'2'} # define tax id.
 
-		uniprot = path.check_db('UNIPROTKB')
-		if d_type == 'sprot':
-			outdir = outdir + '/sprot'
-			outfile = '%s/%s.sprot.xls' % (outdir, files.get_prefix(query))
-			db = os.path.join(uniprot, 'Swiss-Prot', 'uniprot_sprot.fasta')
-			qc = arg.sprot_qc
-			sc = arg.sprot_sc
-			evalue = arg.sprot_evalue
-		if d_type == 'trembl':
-			outdir = outdir + '/trembl'
-			outfile = '%s/%s.trembl.xls' % (outdir, files.get_prefix(query))
-			db = os.path.join(uniprot, 'TrEMBL', 'uniprot_trembl.fasta')
-			qc = arg.trembl_qc
-			sc = arg.trembl_sc
-			evalue = arg.trembl_evalue
-
-		path.sure_exist(outdir)
-		
 		# index this db
 		if not os.path.isfile(db + '.dmnd'):
 			cls._index(db)

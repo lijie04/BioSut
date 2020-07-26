@@ -12,9 +12,132 @@ import subprocess as sp
 
 logger = logging.getLogger(__name__)
 
-class path:
+class gt_file:
+
+	## deprecated, redundanted.
+	def _check(f):
+		"""
+		Check if file exists, if file is not exists, program exit.
+
+		Parameter
+		---------
+		f : str
+			Input file that will be check.
+		"""
+
+		if not os.path.isfile(f):
+			logger.error('File * %s * does not exists.', f)
+			sys.exit()
+
 	@classmethod
-	def check_exist(cls, *paths, check_empty : bool=False):
+	def check_exist(cls, *files, check_empty:bool=False):
+		"""
+		Check if file (s) exists, exit if file not existed.
+
+		Parameters
+		----------
+		fls : str
+			Input file (s) to check existance.
+		check_empty : bool, default False.
+			File emptiness will be checked.
+
+		Result
+		------
+			Process will be killed if file is not exist.
+			If `check_empty` is True, then process will be killed if file is empty.
+		"""
+		for	f in files:
+			if not os.path.isfile(f):
+				logger.error('File * %s * does not exists.', f)
+				sys.exit()
+			if check_empty:
+				cls.is_empty(f)
+
+	def check_empty(*files):
+		"""
+		Check if file is empty.
+
+		Parameters
+		----------
+		fls : str
+			Input file (s) to check emptiness.
+
+		Results
+		-------
+			Exit and report errors if file is empty.
+		"""
+		for f in files:
+			if not os.path.getsize(f):
+				logger.error('File * %s * is empty.', f)
+				sys.exit()
+
+	def get_prefix(f:str, times:int=1, include_path:bool=False):
+		"""
+		Get prefix of file, e.g. file is test.fa, then return test
+
+		Parameters
+		----------
+		f : str
+			Input file, relative path or abusolute path.
+		times : int, default 1.
+			How many times supposed to chop str behind symbol '.'
+		include_path : bool, default False
+			Whether to include path or not.
+
+		Returns
+		-------
+			Return prefix.
+		"""
+		f = path.abs_path(f)
+		for i in range(times):
+			if include_path:
+				return os.path.splitext(f)[0]
+			else:
+				return os.path.splitext(os.path.basename(f))[0]
+
+	@classmethod
+	def get_path(cls, *files):
+		"""
+		Get absolute path of input and return.
+
+		Parameters
+		----------
+		*files : str
+			Input file (s)
+
+		Return
+		-------
+		str
+			Absolute path (s) of your input file (s).
+		"""
+
+		final_paths = [os.path.dirname(cls.abs_path(f)) for f in files]
+
+		if len(final_paths) == 1:
+			return final_paths[0]
+		else:
+			return final_paths
+
+	def perfect_open(file_in:str):
+		"""
+		Make a perfect open for file
+
+		Returns
+		-------
+		str
+			Return file handle
+		"""
+
+		if '.gz' in f:
+			import gzip
+			return gzip.open(f, 'rt')
+		else:
+			return open(f, 'r')
+
+
+class gt_path:
+	@classmethod
+	def check_exist(cls, *paths, check_empty:bool=False):
 		"""
 		Check if path is exists, exits if path does not exist.
 
@@ -69,11 +192,11 @@ class path:
 					sys.exit()
 		if len(final_paths) == 1:return final_paths[0]
 		return final_paths
-	
+
 	def check_empty(*dirs):
 		"""
 		Check if directory(s) is empty.
-		
+
 		Parameters
 		-----------
 		dirs : str
@@ -124,11 +247,11 @@ class path:
 			return final_paths[0]
 		else:
 			return final_paths
-	
+
 	def abs_path(*paths):
 		"""
 		Return absulote path (s), link file/path will keep as linked destination path.
-		The only difference between real_path and abs_path is about the linked file (s)/path (s).
+		The only different between real_path and abs_path is about the way they dealing with soft links.
 
 		Parameters
 		----------
@@ -162,29 +285,31 @@ class path:
 			return final_paths
 
 	@classmethod
-	def get_path(cls, *files):
+	def find_db(cls, db_v:str):
 		"""
-		Get absolute path of input and return.
-		
+		Check if database is exists or not.
+
 		Parameters
 		----------
-		paths : str
-			Input path (s)
+		db_v :	str
+			Database name that will be check
 
-		Return
+		Returns
 		-------
-		str
-			Absolute path (s) of your input file (s).
+			Return database path If found database and not empty,
+			otherwise, program will exits.
 		"""
-		
-		final_paths = [os.path.dirname(cls.abs_path(f)) for f in files]
-		
-		if len(final_paths) == 1:
-			return final_paths[0]
-		else:
-			return final_paths
 
-	def check_program(*prog):
+		db = os.environ.get(db_v)
+		if db:
+			cls.check_empty(db)
+		else:
+			logger.error('Did not find %s'%db)
+			sys.exit()
+		return db
+
+class gt_exe:
+	def is_executable(*prog):
 		"""
 		Check whether program (s) exists in system path.
 
@@ -192,7 +317,7 @@ class path:
 		---------
 		prog : str
 			Program (s) that will be check.
-		
+
 		Result
 		------
 			Exit if program (s) is not exist in system path.
@@ -204,149 +329,25 @@ class path:
 				logger.error('Program * %s * is not found', p)
 				sys.exit()
 
-	@classmethod
-	def check_db(cls, db_v):
-		"""
-		Check if db exists or not.
-
-		Parameters
-		----------
-		db_v :	str
-			Database name that will be check
-
-		Result
-		------
-			Exit process if db is not exist.
-		"""
-		db = os.environ.get(db_v)
-		if db:
-			cls.check_empty(db)
-		else:
-			logger.error('Did not find %s'%db)
-			sys.exit()
-		return db
-
-	def exe_proc(cmd, shell : bool=True):
+	def exe_cmd(cmd, shell:bool=True):
 		"""
 		Executing your command.
-		
+
 		Parameters
 		----------
 		cmd:str, or list
 			Command will be executed.
 		shell : bool, default True
-			Set to False if cmd input is a list.
-		
+			Set to False while cmd is a list.
+
 		Results
 		-------
 			Execute command and return output result and error messages.
 		"""
+
 		proc = sp.Popen(cmd, shell=shell, stdout=sp.PIPE, stderr=sp.PIPE)
 		out, err = proc.communicate()
 		if proc.returncode != 0:
 			logger.error('Error encountered while executing:\n%s\nError message:\n%s\n' %(cmd, err))
 			sys.exit()
 		return out, err
-
-### class files
-class files:
-	
-	## deprecated, redundanted.
-	def _check(f):
-		"""
-		Check if file exists, if file is not exists, program exit.
-
-		Parameter
-		---------
-		f : str
-			Input file that will be check.
-		"""
-
-		if not os.path.isfile(f):
-			logger.error('File * %s * does not exists.', f)
-			sys.exit()
-
-	@classmethod
-	def check_exist(cls, *fls, check_empty : bool=False):
-		"""
-		Check if file (s) exists, exit if file not existed.
-
-		Parameters
-		----------
-		fls : str
-			Input file (s) to check existance.
-		check_empty : bool, default False.
-			File emptiness will be checked.
-
-		Result
-		------
-			Process will be killed if file is not exist.
-			If `check_empty` is True, then process will be killed if file is empty.
-		"""
-		for	f in fls:
-			if not os.path.isfile(f):
-				logger.error('File * %s * does not exists.', f)
-				sys.exit()
-			if check_empty:
-				cls.check_empty(f)
-
-	def check_empty(*fls):
-		"""
-		Check if file is empty.
-
-		Parameters
-		----------
-		fls : str
-			Input file (s) to check emptiness.
-
-		Results
-		-------
-			Exit and report errors if file is empty.
-		"""
-		for f in fls:	
-			if not os.path.getsize(f):
-				logger.error('File * %s * is empty.', f)
-				sys.exit()
-
-	def get_prefix(f, times : int=1, include_path : bool=False):
-		"""
-		Get prefix of file, e.g. file is test.fa, then return test
-		
-		Parameters
-		----------
-		f : str
-			Input file, relative path or abusolute path.
-		times : int, default 1.
-			How many times supposed to chop str behind symbol '.'
-		include_path : bool, default False
-			Whether to include path or not.
-
-		Returns
-		-------
-			Return prefix.
-		"""
-		f = path.abs_path(f)
-		for i in range(times):
-			if include_path:
-				return os.path.splitext(f)[0]
-			else:
-				return os.path.splitext(os.path.basename(f))[0]
-
-	def perfect_open(f):
-		"""
-		Make a perfect open for file
-
-		Returns
-		-------
-		str
-			Return file handle
-		"""
-		
-		if '.gz' in f:
-			import gzip
-			return gzip.open(f, 'rt')
-		else:
-			return open(f, 'r')
-
-
-

@@ -1,30 +1,29 @@
+"""
+The :mod:`biosut.biobam` includes some bam operation.
+"""
 
-#####################################################################
-##																	#
-# bamutil.py -- some bam file related util functions				#
-##																	#
-####################################################################
-
+# Author: Jie Li <mm.jlli6t@gmail.com>
+# License: GNU v3.0
 
 import os
-from biosut.biosys import path
-from biosut.sequtil import sequtil
+from .biosys import gt_exe
+from .bioseq import io_seq
 import pysam as ps
 from re import findall
 import pandas as pd
 
-class bamutil:
+class io_bam:
 
 	@classmethod
-	def index_bam(cls, bam, override=False):
+	def index_bam(cls, bam, override:bool=False):
 		"""
 		Indexing bam file.
 
 		Parameters:
-		bam:str
+		bam : str
 			input bam file
-		override:bool
-			True/False to override existing results, default True.
+		override : bool, default False
+			Override existing results or not.
 		"""
 
 		if override:
@@ -45,7 +44,7 @@ class bamutil:
 					return srt_bam
 		else:
 			return bam
-	
+
 	def _sure_index_bam(bam):
 		"""
 		Indexing bam file no matter it is existed or not.
@@ -59,7 +58,7 @@ class bamutil:
 		--------
 		Generate indexed bam file and return bam.
 		"""
-		
+
 		srt_bam = bam + '.srt.bam'
 		try:
 			ps.index(bam)
@@ -94,7 +93,7 @@ class bamutil:
 		if not os.path.isfile(srt_bam):
 			ps.sort('-o', srt_bam, bam)
 		return srt_bam
-	
+
 	@classmethod
 	def retrieve_reads(cls, bam, ref, out_prefix, **kargs):
 		"""
@@ -108,7 +107,7 @@ class bamutil:
 			referece fasta file to use
 		out_prefix : str
 			output prefix to use for output files, must include paths.
-		
+
 		secondary : bool, default is True
 			keep secondary alignments.
 		qcfail : bool, default is True
@@ -119,7 +118,7 @@ class bamutil:
 			set to keep supplementary alignments.
 		reorder : bool, default is True
 			set to reorder paired sequences, as they are not in same order originally.
-		
+
 		Results
 		-------
 			Out put extracted reads into paired 1&2 and unpaired 3 types.
@@ -178,26 +177,24 @@ class bamutil:
 		stats['singletons'] = {}
 		stats['retreived reads'] = {}
 		flags = ['paired', 'forward', 'reverse']
-		
+
 		for flg, err in zip(flags, errs):
 			err = findall('discarded (\d+) singletons\\n.*processed (\d+) reads', err.decode())[0]
 			stats['singletons'][flg] = err[0]
 			stats['retreived reads'][flg] = err[1]
-		
-		return pd.DataFrame.from_dict(stats).astype(int)
 
+		return pd.DataFrame.from_dict(stats).astype(int)
 
 	def _re_order_pair_fq(fq1, fq2):
 		fq1_out = fq1
 		fq2_out = fq2
-		fq1 = sequtil.read_fastq(fq1, qual=True)
-		fq2 = sequtil.read_fastq(fq2, qual=True)
+		fq1 = sequtil.read_seq_to_dict(fq1, qual=True)
+		fq2 = sequtil.read_seq_to_dict(fq2, qual=True)
 	#	print('Reordering fastq sequences id.')
 		with open(fq1_out, 'w') as fq1_out, open(fq2_out, 'w') as fq2_out:
-			for seq_id in fq1.keys():
-				fq1_out.write('@' + seq_id + '\n' + fq1[seq_id][0] + '\n+\n' + fq1[seq_id][1] + '\n')
-				fq2_out.write('@' + seq_id + '\n' + fq2[seq_id][0] + '\n+\n' + fq2[seq_id][1] + '\n')
-
+			for sid in fq1.keys():
+				fq1_out.write('@\n%s\n%s\n+\n%s\n'%(sid, fq1[sid][0], fq1[sid][1])
+				fq2_out.write('@\n%s\n%s\n+\n%s\n'%(sid, fq2[sid][0], fq2[sid][1])
 
 def infer_identity(aln):
 	""" Infer identity of alignment, denominator not include hard-clipped bases, soft-clipped bases are included, I consider soft-clipp as gap-open"""

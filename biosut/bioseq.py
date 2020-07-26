@@ -1,109 +1,35 @@
 """
 The :mod:`biosut.bioseq` includes utilities to operate sequence files.
 """
-
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
 
 from re import findall
-import pandas as pd
-from .biosys import files
+from .biosys import gt_file
 
-class sequtil:
-
-	@classmethod
-	def fq2fa(cls, fq, outfa):
-		"""
-		Convert FASTQ format to FASTA format file.
-
-		Parameters
-		----------
-		fq : str
-			Input FASTQ file.
-		outfa : str
-			Output FASTA file.
-
-		Result
-		------
-			Output converted FASTA file.
-		"""
-
-		fh = files.perfect_open(fq)
-		with open(outfa, 'w') as outf:
-			for t, seq, _ in cls.seq_reader(fh):
-				outf.write('>' + t + '\n' + seq + '\n')
-		fh.close()
-	
-	@classmethod
-	def seq_gc(cls, seq, length : bool = False, len_cutoff : int = 0):
-		"""
-		Count sequence gc ratio and length.
-		
-		Parameters
-		----------
-		seq : str
-			FASTA/FASTQ(.gz) file
-		length : bool, default False.
-			return length or not.
-		len_cutoff : int, default 0.
-			sequence below this length wont include, 0 means count all sequences.
-
-		Returns
-		-------
-			Return a dict with key-value pairs are seqid and list[gc ratio]
-		"""
-		gc = {}
-		# use perfect_open to deal with*.gz files
-		fh = files.perfect_open(seqs)
-		# use low-level parser to speed up when dealing with super large data
-		# Jie, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
-		# it's acceptable while considering file size.
-		for t, seq, _ in cls.seq_reader(fh):
-			gc[t] = [cls._string_gc(seq)/len(seq)*100., len(seq)]
-		fh.close()
-		return gc
-	
-	def _string_gc(string):
-		"""
-		Count string G/C number.
-
-		Parameters
-		----------
-		string : str
-
-		Returns
-		-------
-			Return number of GC symbols.
-
-		Examples
-		--------
-		>>> from biosut.sequtil.sequtil iport count_string_gc
-		>>> string = "GATDGGBKEREWCGSGCGEW"
-		>>> gc = count_string_gc(string)
-		>>> gc
-		7
-		"""
-		string = string.upper()
-		return string.count('G') + string.count('C')
+class io_seq:
 
 	# this is a copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
-	def seq_reader(fp):
+	def iterator(fh, chop_comment:bool=False):
 		"""
-		Sequence generator.
-		fp : str
+		Sequence iterator.
+		fh : str
 			Input file handle.
+		chop_comment : bool, default is False
+			Chop comment in sequence id or not.
 		"""
 		last = None # this is a buffer keeping the last unprocessed line
 		while True: # mimic closure; is it a bad idea?
 			if not last: # the first record or a record following a fastq
-				for l in fp: # search for the start of the next record
+				for l in fh: # search for the start of the next record
 					if l[0] in '>@': # fasta/q header line
 						last = l[:-1] # save this line
 						break
 			if not last: break
-			#name, seqs, last = last[1:].partition(" ")[0], [], None
-			name, seqs, last = last[1:], [], None # Jie, modified to keep the comment of id.
-			for l in fp: # read the sequence
+			#name, seqs, last = last[1:], [], None # jlli6t, keep comment of seq id.
+			name = last[1:].partition(" ")[0] if chop_comment else last[1:]
+			seqs, last = [], None
+			for l in fh: # read the sequence
 				if l[0] in '@+>':
 					last = l[:-1]
 					break
@@ -113,7 +39,7 @@ class sequtil:
 				if not last: break
 			else: # this is a fastq record
 				seq, leng, seqs = ''.join(seqs), 0, []
-				for l in fp: # read the quality
+				for l in fh: # read the quality
 					seqs.append(l[:-1])
 					leng += len(l) - 1
 					if leng >= len(seq): # have read enough quality
@@ -123,60 +49,200 @@ class sequtil:
 				if last: # reach EOF before reading enough quality
 					yield name, seq, None # yield a fasta record instead
 					break
-	
+
 	@classmethod
-	def read_seq(cls, fl : str, length : bool=False, qual : bool=False):
+	def fq2fa(cls, infq, outfa):
 		"""
-		Read fasta format file in.
+		Convert FASTQ format to FASTA format file.
 
 		Parameters
 		----------
-		fl : str
+		infq : str
+			Input FASTQ(.gz) file.
+		outfa : str
+			Output FASTA file.
+
+		Result
+		------
+			Output converted FASTA file.
+		"""
+
+		fh = gt_file.perfect_open(fq)
+		with open(outfa, 'w') as outf:
+			for t, seq, _ in cls.seq_reader(fh):
+				outf.write('>' + t + '\n' + seq + '\n')
+		fh.close()
+
+	def string_gc(string):
+		"""
+		Count string G/C number.
+
+		Parameters
+		----------
+		string : str
+
+		Returns
+		-------
+			Return number of GC count.
+
+		Examples
+		--------
+		>>> from biosut.bioseq.io_seq iport string_gc
+		>>> string = "GATDGGBKEREWCGSGCGEW"
+		>>> gc = string_gc(string)
+		>>> gc
+		7
+		"""
+		string = string.upper()
+		return string.count('G') + string.count('C')
+
+	@classmethod
+	def gc_to_dict(cls, inseq:str, len_cutoff:int = 0, length:bool = False):
+		"""
+		Count GC  of sequences and other characteristics of sequences \
+		to dict.
+
+		Parameters
+		----------
+		inseq : str
 			FASTA/FASTQ(.gz) file
+		len_cutoff : int, default 0.
+			Sequence below this length will be excluded.
 		length : bool, default False.
-			output length instead of sequence.
-		qual : bool, default False.
-			output qual or not.
-		
+			Also return length of each sequences or not.
+
+		Returns
+		-------
+			Return a dict with sequence id as key and along gc and \
+			other characteristics of sequences as value.
+		"""
+		gc = {}
+		# use perfect_open to deal with*.gz files
+		fh = gt_file.perfect_open(seqs)
+		# use low-level parser to speed up when dealing with super large data
+		# jlli6t, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
+		# it's acceptable while considering file size.
+		for t, seq, _ in cls.iterator(fh):
+			if len(seq)<len_cutoff:continue
+			gc[t] = [cls.string_gc(seq)]
+			if length:gc[t].append(len(seq))
+		fh.close()
+		return gc
+
+	@classmethod
+	def seq_to_dict(cls, inseq:str, qual:bool = False, len_cutoff:int=0):
+		"""
+		Read and return sequences to dict format.
+
+		Parameters
+		----------
+		inseq : str
+			FASTA/FASTQ(.gz) file
+		outqual : bool, default False.
+			Include qual in output or not.
+		len_cutoff : int
+			Sequences below this cutoff will be discarded.
 		Returns
 		-------
 			Return a dict contain seq id as key and seq as value.
 		"""
 
 		seqs = {}
-		fh = files.perfect_open(fasta)
-		for t, seq, _ in seq_reader(fh):
-			seqs[t] = seq
-			if length:seqs[t] = len(seq)
+		fh = gt_file.perfect_open(fasta)
+		for t, seq, _ in iterator(fh):
+			if len(seq) < len_cutoff:continue
+			seqs[t] = [seq]
+			if outqual:seqs[t].append(_)
 		fh.close()
 		return seqs
 
 	@classmethod
-	def evaluate_genome(cls, genome, length:int=500):
+	def extract_seq(cls, inseq, idlist, outseq, outqual:bool=False, \
+					out_negmatch:bool=False):
 		"""
-		Evaluate genome and return genome features.
+		Extract sequences you need.
+
+		Parameters
+		----------
+		inseq : str
+			Input FASTA/FASTQ(.gz) file.
+		idlist : list
+			idlist to extract corresponding sequences.
+		outseq : str
+			File to output matched sequences.
+		outqual : bool, default False
+			Include qual in output or not
+		out_negmatch : bool, default False
+			Output negtive match sequences into *.negmatch or not.
+
+		Result
+		------
+			Output matched (and negtive matched) sequence file,\
+			and return matched and negmatched sequences dicts.
+		"""
+#		all_id = []
+#		if type(idlist) is str:
+#			with open(idlist) as id_in:
+#				for Id in id_in:
+#					all_id.append(Id.strip())
+#		else:
+#			all_id = idlist
+
+		match, negmatch = {}, {}
+		match_out = open(outseq, 'w')
+		if out_negmatch:negmatch_out = open(outseq + '.negmatch', 'w')
+		fh = gt_file.perfect_open(inseq)
+
+		if outqual:
+			for t, seq, _ in cls.iterator(fh):
+				if t in idlist:
+					match_out.write('@%s\n%s\n+\n%s\n' % (t, seq, _))
+					match[t] = [seq, _]
+					continue
+				negmatch[t] = [seq, _]
+				if out_negmatch:
+					negmatch_out.write('@%s\n%s\n+\n%s\n' % (t, seq, _))
+		else:
+			for t, seq, _ in cls.iterator(fh):
+				if t in idlist:
+					match_out.write('>%s\n%s\n' % (t, seq))
+					match[t] = [seq]
+					continue
+				negmatch[t] = [seq]
+				if out_negmatch:
+					negmatch_out.write('>%s\n%s\n' % (t, seq))
+		fh.close()
+		match_out.close()
+		negmatch_out.close()
+		return match, negmatch
+
+	@classmethod
+	def evaluate_genome(cls, genome, len_cutoff:int=500):
+		"""
+		Evaluate genome and return genome traits.
 
 		Parameters
 		----------
 		genome : file
 			Input file contains contigs or a FASTA file.
-		length : int, default 500
-			sequences below this length will be dropped.
+		len_cutoff : int, default 500
+			sequences below this length will be excluded.
 
 		Returns
 		-------
-			Return genome size, contig number, n50, maximal contig, minimal contig, gap number, gc ratio.
+			Return genome size, contig number, n50, maximal contig, \
+			minimal contig, gap number, gc ratio.
 		"""
 
-		fh = files.perfect_open(genome)
+		fh = gt_file.perfect_open(genome)
 		gap, gc, contig_num, contig_len = 0, 0, 0, []
-		for t, seq, _ in cls.seq_reader(fh):
-			if len(seq) < length:continue
+		for t, seq, _ in cls.iterator(fh):
+			if len(seq) < len_cutoff:continue
 			contig_num += 1
 			contig_len.append(len(seq))
 			gap += len(findall('N+', seq))
-			gc += cls._count_string_gc(seq) 
-		
+			gc += cls.string_gc(seq)
+
 		genome_size = sum(contig_len)
 		gc = round(gc/genome_size*100., 2)
 
@@ -187,199 +253,112 @@ class sequtil:
 			if sum_len >= genome_size*0.5:
 				n50 = i
 				break
-		
 		return genome_size, contig_num, n50, max(contig_len), min(contig_len), gap, gc
 
-
-class seqalter:
+class alter_seq:
 	@classmethod
-	def filter_fasta(cls, fasta, outfasta, 
-				longer : bool = None, shorter:bool = None,
-				first = 0, end = 0):
+	def select_seq(cls, inseq, outseq, longer = None, shorter = None, \
+					first:float = 0, end:float = 0, outqual=False):
 		"""
-		Trim sequences according length.
+		Select sequences according length.
 
 		Parameters
 		----------
-		fasta : str
-			input FASTA file.
-		outfasta : str
-			output FASTA file.
-		longer : int
-			exclude sequence longer than this cutoff, default None.
+		infasta : str
+			input FASTA/FASTQ(.gz) file.
+		outseq : str
+			output seq file in FASTA/FASTQ format.
+		longer : int, default keep all sequence.
+			exclude sequence longer than this cutoff.
 		shorter : int
-			exclude sequence shorter than this cutoff, default None.
-		first : int or float
+			exclude sequence shorter than this cutoff.
+		first : float, 1 means all.
 			longest top n% sequences will be excluded, default 0.
-		end : int or float
+		end : float, 1 means all
 			shortest top n% sequences will be excluded, default 0.
+		outqual : bool, default False
+			Include qual in output or not.
 
 		Returns
 		-------
-			Trimmed FASTA
+			Trimmed FASTA/FASTQ sequences.
 		"""
-
-		length = cls.cal_length(fasta)
-		
-		if longer:length = length.loc[length[length.length<=longer].index]
-		if shorter:length = length.loc[length[length.length>=shorter].index]
-
-		length = length.sort_values(by='length', ascending=False)
-
-		first = round(first * len(length)/float(100) + 0.5)
-		end = round(end * len(length)/float(100) + 0.5)
-		length = length.iloc[first:len(length)-end, ]
-
-		matched, _ = cls.extract_seq(fasta, length.index, in_type='fasta')
-		SeqIO.write(matched, outfasta, 'fasta')
-
-	def cal_length(fasta, outf = None, plot : bool = False, bins = 10):
-		"""
-		calculate sequences length.
-		
-		Parameters
-		----------
-		fasta : str
-			fasta input file
-		outf : str, default None
-			Output length file.
-		plot : bool, default False
-			Plot a hist of fasta length. It has to set with `outf`.
-		bins : int, default is 10.
-			Number of bins to plot.
-		
-		Returns
-		-------
-			Return dataframe contain FASTA length.
-		"""
-		length = {}
-		fh = files.perfect_open(fasta)
-		for t, seq in sequtil.seq_reader(fh):
-			length[t] = len(seq)
-		new = {}
-		new['length'] = length
-		new = pd.DataFrame.from_dict(new)
-		if outf:
-			new.to_csv(outf, sep='\t')
-			if plot:
-				new.hist(column='length', grid=False, bins=bins)
-				plt.savefig(outf+'.hist.pdf', dpi=600)
-		return new
-
-	def extract_seq(in_file, idlist, in_type = 'fasta', outdir = None):
-		"""
-		Extract sequences you need.
-		
-		Parameters
-		----------
-		in_file : str
-			Input sequence file.
-		idlist : list, or file contain a column of id, file without header.
-			idlist to extract corresponding sequences. id is the string before gap.
-		in_type : str, default in_type=fasta
-			input sequences type, fasta or fastq, default is fasta
-		outdir:str
-			output dir, default is the same as in_file directory.
-
-		Result:
-		-------
-			Return matched idlist sequences and negtive matched idlist sequences.
-		"""
-		
-		if in_type != 'fasta' and in_type != 'fastq':
-			sys.exit('in_type can only be fasta or fastq.')
-
-		if type(idlist) is str:
-			#if low_level:
-			df_reader = pd.read_csv(idlist, sep='\t', header=None, index_col=0, iterator=True)
-			idlist = []
-			while True:
-				try:
-					chunk = df_reader.get_chunk(500000)
-					idlist.extend(list(chunk.index))
-				except StopIteration:
-					print("Finished looping the idlist in.")
-					break
-		
-		if outdir:
-			outdir = path.get_path(in_file)
-
-		prefix = outdir + '/' + files.get_prefix(in_file)
-
-		fh = files.perfect_open(in_file)
-		match, negmatch = {}, {}
-		
-		match_out = open(prefix + '.match.' + in_type, 'w')
-		negmatch_out = open(prefix + '.negmatch.' + in_type, 'w')
-
-		if in_type == 'fasta':
-			for t, seq, _ in readseq(fh):
-				if t.partition(' ')[0] in idlist:
-					match_out.write('>%s\n%s\n' % (t, seq))
-				else:
-					negmatch_out.write('>%s\n%s\n' % (t, seq))
-		else:
-			for t, seq, qual in readseq(fh):
-				if t.partition(' ')[0] in idlist:
-					match_out.write('@%s\n%s\n+\n%s\n' % (t, seq, qual))
-				else:
-					negmatch_out.write('@%s\n%s\n+\n%s\n' % (t, seq, qual))
-
+		fh = gt_file.perfect_open(infasta)
+		all_length = []
+		for t, seq, _ in io_seq.iterator(fh):
+			if shorter and len(seq) < shorter:continue
+			if longer and len(seq) > longer:continue
+			all_length.append(len(seq))
 		fh.close()
-		match_out.close()
-		negmatch_out.close()
 
-	def split_fasta(fasta, outfasta, symbol = 'N', exact : bool = True):
+		all_length.sort(reverse=True)
+		total = len(all_length)
+		if first:first = all_length[round(first * total) + 0.5)]
+		if end:end = all_length[total-round(end * total + 0.5)-1]
+		fh = gt_file.perfect_open(infasta)
+		with open(outseq, 'w') as outf:
+			for t, seq, _ in io_seq.iterator(fh):
+				if first and len(seq) > first:continue
+				if end and len(seq) < end:continue
+				if outqual:
+					outf.write('@%s\n%s\n+\n%s\n'%(t, seq, _))
+				else:
+					outf.write('>%s\n%s\n'%(t, seq))
+		fh.close()
+
+	def split_fasta(infasta, outfasta, symbol = 'N', exact:bool = True):
 		"""
-		Use this function to break sequence using symbol (e.g. Ns).
+		Split sequences using symbol (e.g. Ns).
 
 		Parameters
 		----------
-		fasta : str
+		infasta : str
 			Input FASTA file.
 		outfasta : str
 			Output FASTA file.
 		symbol : str, default 'N'
-			symbol to use to break FASTA. [N]
+			symbol to use to break sequence
 		exact : bool, default True
-			exact symbol or not, e.g, set symbol is NN, exact=True will not NNN or NNNN as a cut point. [True]
+			exact symbol or not, \
+			e.g, set symbol to NN, and exact=True, \
+			program will not recognize NNN or NNNN as a split site.
 
 		Result
 		------
-			Output a FASTA file.
+			Output splitted sequence file.
 		"""
-	
+
 		symbol_len = len(symbol)
 		symbol += '+' # make a 're' match to indicate one or more symbol
-		fh = files.perfect_open(fasta)
+		fh = gt_file.perfect_open(infasta)
+		out = open(outfasta, 'w')
 		print(symbol, symbol_len)
-		with open(outfasta, 'w') as out:
-			for t, seq, _ in sequtil.seq_reader(fh):
-				c, start, end = 0, 0, 0
-				gaps = findall(symbol, seq)
+		for t, seq, _ in sequtil.seq_reader(fh):
+			c, start, end = 0, 0, 0
+			gaps = findall(symbol, seq)
 
-				if len(gaps) == 0:
-					out.write('>%s\n%s\n' % (i, seq))
+			if len(gaps) == 0:
+				out.write('>%s\n%s\n' % (t, seq))
+				continue
+
+			for gap in gaps:
+				pos = seq[end:].find(gap)
+				end += pos
+				# use symbol_len to replace, to judge whether to stop here or not.
+				if len(gap) == symbol_len: # exact a 'gap' to split fasta
+					c += 1
+					out.write('>%s_%d|len=%s\n%s\n' % (t, c, end-start, seq[start:end]))
+					start = end + len(gap)
+					end += len(gap)
 					continue
-
-				for gap in gaps:
-					pos = seq[end:].find(gap)
-					end += pos
-					## use symbol_len to replace, to judge whether to stop here or not.
-					if len(gap) == symbol_len: # exact a 'gap' to split fasta
-						c += 1
-						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, seq[start:end]))
-						start = end + len(gap)
-						end += len(gap)
-						continue
-					if exact: # N is more than expected.
-						end += len(gap)
-					else:
-						c += 1
-						out.write('>%s_%d|len=%s\n%s\n' % (i, c, end-start, seq[start:end]))
-						start = end + len(gap)
-						end += len(gap)
-				## make the last one, cause n gaps will chunk sequences into n+1 small sequences.
-				out.write('>%s_%d|len=%s\n%s\n' % (i, c+1, len(seq)-start, seq[start:]))
-
-
+				if exact: # N is more than expected.
+					end += len(gap)
+					continue
+				c += 1
+				out.write('>%s_%d|len=%s\n%s\n' % (t, c, end-start, seq[start:end]))
+				start = end + len(gap)
+				end += len(gap)
+			# output the last one, cause n gaps will chunk sequences into n+1 small sequences.
+			out.write('>%s_%d|len=%s\n%s\n' % (t, c+1, len(seq)-start, seq[start:]))
+		fh.close()
+		out.close()
