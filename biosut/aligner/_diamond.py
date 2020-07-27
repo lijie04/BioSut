@@ -7,12 +7,11 @@ The :mod:`biosut._diamond` integrated diamond related operations.
 
 import os
 from os.path import join
-import subprocess
 import logging
 import pandas as pd
 from numpy import unique
 
-from biosut.biosys import path, files
+from biosut.biosys import gt_file, gt_path
 
 class diamond:
 
@@ -32,9 +31,9 @@ class diamond:
 		aln_filter = cls._filter(outfile, query_cover=qc, subject_cover=sc, evalue=evalue, top=1)
 
 		cls._anno(db+'.info.gz', aln_filter)
-		
 
-	def index_db(db, taxid : bool=True):
+
+	def index_db(db, taxid:bool=True):
 		"""
 		Index the referece database with diamond.
 
@@ -74,10 +73,10 @@ class diamond:
 
 		aln_out = path.real_path(aln_out)
 		files.check_exist(db + '.info.gz', check_empty=True)
-		out_columns = ['qseqid', 'qlen', 'qcovhsp', 
+		out_columns = ['qseqid', 'qlen', 'qcovhsp',
 						'sseqid', 'slen', 'scovhsp',
-						'pident', 'length', 'mismatch', 
-						'gapopen', 'qstart', 'qend', 
+						'pident', 'length', 'mismatch',
+						'gapopen', 'qstart', 'qend',
 						'sstart', 'send', 'evalue', 'bitscore']
 
 ## no --compress, do not compress the align result this time. Jie.
@@ -112,7 +111,7 @@ class diamond:
 		subject_cover : float
 			minimum percentage of a lign length cover the subject, default 50.
 		evalue : float
-			minimum evalue to keep an alignment, default 1e-10		
+			minimum evalue to keep an alignment, default 1e-10
 		top : int
 			number of hits of each query to keep, default is 1.
 
@@ -120,11 +119,11 @@ class diamond:
 		-------
 			generate a file name suffix with *.filter
 		"""
-	
+
 		columns = ['qseqid', 'qlen', 'qcovhsp',
 					'sseqid', 'slen', 'scovhsp',
-					'pident', 'length', 'mismatch', 
-					'gapopen', 'qstart', 'qend', 
+					'pident', 'length', 'mismatch',
+					'gapopen', 'qstart', 'qend',
 					'sstart', 'send', 'evalue', 'bitscore']
 
 		logger.info("*FILTERING* alignments is *RUNNING*.")
@@ -138,7 +137,7 @@ class diamond:
 			aln_idx = aln[aln.qseqid == idx]
 			if count > top:aln_idx = aln_idx.iloc[0:top, :]
 			aln_top = aln_top.append(aln_idx)
-		
+
 		aln_top = aln_top[aln_top.pident>=float(identity)]
 		aln_top = aln_top[aln_top.evalue<=float(evalue)]
 
@@ -162,7 +161,7 @@ class diamond:
 		aln_filter : str
 			alingments filtered file to anno.
 		"""
-		
+
 		logger.info("*ANNOTATING* alignments is *RUNNING*.")
 		aln_file = aln + '.anno.xls'
 		files.check_exist(db_info, check_empty=True)
@@ -228,12 +227,9 @@ if __name__ == '__main__':
 	logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 	logger = logging.getLogger(__name__)
 
-	if not os.path.isfile(ref + '.dmnd'):	
+	if not os.path.isfile(ref + '.dmnd'):
 		diamond.index(ref)
 
 	diamond.align(query, ref, out, taxon)
 	diamond.sift(out, query_cover=50, subject_cover=50, evalue=1e-10)
 	diamond.anno(ref+'.info.gz', out+'.filter', d_type)
-
-
-

@@ -9,7 +9,7 @@ from .biosys import gt_file
 
 class io_seq:
 
-	# this is a copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
+	# copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 	def iterator(fh, chop_comment:bool=False):
 		"""
 		Sequence iterator.
@@ -130,7 +130,7 @@ class io_seq:
 		return gc
 
 	@classmethod
-	def seq_to_dict(cls, inseq:str, qual:bool = False, len_cutoff:int=0):
+	def seq_to_dict(cls, inseq:str, outqual:bool = False, len_cutoff:int=0):
 		"""
 		Read and return sequences to dict format.
 
@@ -155,66 +155,6 @@ class io_seq:
 			if outqual:seqs[t].append(_)
 		fh.close()
 		return seqs
-
-	@classmethod
-	def extract_seq(cls, inseq, idlist, outseq, outqual:bool=False, \
-					out_negmatch:bool=False):
-		"""
-		Extract sequences you need.
-
-		Parameters
-		----------
-		inseq : str
-			Input FASTA/FASTQ(.gz) file.
-		idlist : list
-			idlist to extract corresponding sequences.
-		outseq : str
-			File to output matched sequences.
-		outqual : bool, default False
-			Include qual in output or not
-		out_negmatch : bool, default False
-			Output negtive match sequences into *.negmatch or not.
-
-		Result
-		------
-			Output matched (and negtive matched) sequence file,\
-			and return matched and negmatched sequences dicts.
-		"""
-#		all_id = []
-#		if type(idlist) is str:
-#			with open(idlist) as id_in:
-#				for Id in id_in:
-#					all_id.append(Id.strip())
-#		else:
-#			all_id = idlist
-
-		match, negmatch = {}, {}
-		match_out = open(outseq, 'w')
-		if out_negmatch:negmatch_out = open(outseq + '.negmatch', 'w')
-		fh = gt_file.perfect_open(inseq)
-
-		if outqual:
-			for t, seq, _ in cls.iterator(fh):
-				if t in idlist:
-					match_out.write('@%s\n%s\n+\n%s\n' % (t, seq, _))
-					match[t] = [seq, _]
-					continue
-				negmatch[t] = [seq, _]
-				if out_negmatch:
-					negmatch_out.write('@%s\n%s\n+\n%s\n' % (t, seq, _))
-		else:
-			for t, seq, _ in cls.iterator(fh):
-				if t in idlist:
-					match_out.write('>%s\n%s\n' % (t, seq))
-					match[t] = [seq]
-					continue
-				negmatch[t] = [seq]
-				if out_negmatch:
-					negmatch_out.write('>%s\n%s\n' % (t, seq))
-		fh.close()
-		match_out.close()
-		negmatch_out.close()
-		return match, negmatch
 
 	@classmethod
 	def evaluate_genome(cls, genome, len_cutoff:int=500):
@@ -253,7 +193,8 @@ class io_seq:
 			if sum_len >= genome_size*0.5:
 				n50 = i
 				break
-		return genome_size, contig_num, n50, max(contig_len), min(contig_len), gap, gc
+		return genome_size, contig_num, n50, max(contig_len), \
+				min(contig_len), gap, gc
 
 class alter_seq:
 	@classmethod
@@ -344,10 +285,11 @@ class alter_seq:
 			for gap in gaps:
 				pos = seq[end:].find(gap)
 				end += pos
-				# use symbol_len to replace, to judge whether to stop here or not.
+				# use symbol_len to replace, judge whether to stop here or not.
 				if len(gap) == symbol_len: # exact a 'gap' to split fasta
 					c += 1
-					out.write('>%s_%d|len=%s\n%s\n' % (t, c, end-start, seq[start:end]))
+					out.write('>%s_%d|len=%s\n%s\n' % \
+								(t, c, end-start, seq[start:end]))
 					start = end + len(gap)
 					end += len(gap)
 					continue
@@ -355,10 +297,109 @@ class alter_seq:
 					end += len(gap)
 					continue
 				c += 1
-				out.write('>%s_%d|len=%s\n%s\n' % (t, c, end-start, seq[start:end]))
+				out.write('>%s_%d|len=%s\n%s\n' % \
+				 			(t, c, end-start, seq[start:end]))
 				start = end + len(gap)
 				end += len(gap)
-			# output the last one, cause n gaps will chunk sequences into n+1 small sequences.
-			out.write('>%s_%d|len=%s\n%s\n' % (t, c+1, len(seq)-start, seq[start:]))
+			# output the last one, as n gaps cut sequences into n+1 sequences.
+			out.write('>%s_%d|len=%s\n%s\n' % \
+						(t, c+1, len(seq)-start, seq[start:]))
 		fh.close()
 		out.close()
+
+	def reorder_PE_fq(infq1, infq2, outdir=None):
+		"""
+		Reorder pair-end FASTQ files to make fq1 & fq2 in same order.
+
+		Parameters
+		----------
+		infq1 : str
+			Input FASTQ 1 file (.gz)
+		infq2 : str
+			Input FASTQ 2 file (.gz)
+		outdir : str, default None
+			Outdir to output reordered files, without outdir, \
+			old files will be replaced.
+
+		Results
+		-------
+			Output pair-end FASTQ files that contain sequences in same order.
+		"""
+		fq1 = io_seq.seq_to_dict(infq1, qual=True, len_cutoff=0)
+		fq2 = io_seq.seq_to_dict(infq2, qual=True, len_cutoff=0)
+
+		if '.gz' in infq1:infq1 = gt_file.get_prefix(infq1, include_path=True)
+		if '.gz' in infq2:infq2 = gt_file.get_prefix(infq2, include_path=True)
+
+		if outdir:
+			fq1_out = open('%s/%s' % (outdir, os.path.basename(infq1)), 'w')
+			fq2_out = open('%s/%s' % (outdir, os.path.basename(infq2)), 'w')
+		else:
+			fq1_out = open(infq1, 'w')
+			fq2_out = open(infq2, 'w')
+
+	#	print('Reordering fastq sequences id.')
+		for t in fq1.keys():
+			fq1_out.write('@\n%s\n%s\n+\n%s\n' % (sid, fq1[t][0], fq1[t][1]))
+			fq2_out.write('@\n%s\n%s\n+\n%s\n' % (sid, fq2[t][0], fq2[t][1]))
+
+		fq1_out.close()
+		fq2_out.close()
+
+	def extract_seq(inseq, idlist, outseq, outqual:bool=False, \
+					out_negmatch:bool=False):
+		"""
+		Extract sequences you need.
+
+		Parameters
+		----------
+		inseq : str
+			Input FASTA/FASTQ(.gz) file.
+		idlist : list
+			idlist to extract corresponding sequences.
+		outseq : str
+			File to output matched sequences.
+		outqual : bool, default False
+			Include qual in output or not
+		out_negmatch : bool, default False
+			Output negtive match sequences into *.negmatch or not.
+
+		Result
+		------
+			Output matched (and negtive matched) sequence file,\
+			and return matched and negmatched sequences dicts.
+		"""
+#		all_id = []
+#		if type(idlist) is str:
+#			with open(idlist) as id_in:
+#				for Id in id_in:
+#					all_id.append(Id.strip())
+#		else:
+#			all_id = idlist
+
+		match, negmatch = {}, {}
+		match_out = open(outseq, 'w')
+		if out_negmatch:negmatch_out = open(outseq + '.negmatch', 'w')
+		fh = gt_file.perfect_open(inseq)
+
+		if outqual:
+			for t, seq, _ in io_seq.iterator(fh):
+				if t in idlist:
+					match_out.write('@%s\n%s\n+\n%s\n' % (t, seq, _))
+					match[t] = [seq, _]
+					continue
+				negmatch[t] = [seq, _]
+				if out_negmatch:negmatch_out.write('@%s\n%s\n+\n%s\n' % \
+				 									(t, seq, _))
+		else:
+			for t, seq, _ in io_seq.iterator(fh):
+				if t in idlist:
+					match_out.write('>%s\n%s\n' % (t, seq))
+					match[t] = [seq]
+					continue
+				negmatch[t] = [seq]
+				if out_negmatch:negmatch_out.write('>%s\n%s\n' % (t, seq))
+		fh.close()
+		match_out.close()
+		negmatch_out.close()
+		return match, negmatch
