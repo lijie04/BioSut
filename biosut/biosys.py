@@ -285,7 +285,7 @@ class gt_path:
 			return final_paths
 
 	@classmethod
-	def find_db(cls, db_v:str):
+	def find_db_path(cls, db_v:str):
 		"""
 		Check if database is exists or not.
 
