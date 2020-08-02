@@ -8,7 +8,7 @@ The :mod:`biosut.io_bam` includes some bam operation.
 import os
 import pysam as ps
 
-from .go_exe import exe_cmd
+from .biosut.go_exe import exe_cmd
 
 # code relies on samtools, so please add samtools in.
 def sort_bam(bam, overlay:bool=False):
@@ -106,6 +106,3 @@ def is_sorted(bam):
 	out, err = exe_cmd(cmd)
 	if 'unsorted' in out.decode():return False
 	return True
-
-
-	
