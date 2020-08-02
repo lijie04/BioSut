@@ -5,7 +5,9 @@ The :mod:`biosut.bioseq` includes utilities to operate sequence files.
 # License: GNU v3.0
 
 from re import findall
-from .biosys import gt_file
+
+from .biosut import io_seq
+from .biosut import go_file
 
 def select_seq(inseq, outseq, longer = None, shorter = None, \
 				first:float = 0, end:float = 0, outqual=False):
@@ -33,7 +35,7 @@ def select_seq(inseq, outseq, longer = None, shorter = None, \
 	-------
 		Trimmed FASTA/FASTQ sequences.
 	"""
-	fh = gt_file.perfect_open(infasta)
+	fh = go_file.perfect_open(infasta)
 	all_length = []
 	for t, seq, _ in io_seq.iterator(fh):
 		if shorter and len(seq) < shorter:continue
@@ -45,7 +47,7 @@ def select_seq(inseq, outseq, longer = None, shorter = None, \
 	total = len(all_length)
 	if first:first = all_length[round(first * total) + 0.5)]
 	if end:end = all_length[total-round(end * total + 0.5)-1]
-	fh = gt_file.perfect_open(infasta)
+	fh = go_file.perfect_open(infasta)
 	with open(outseq, 'w') as outf:
 		for t, seq, _ in io_seq.iterator(fh):
 			if first and len(seq) > first:continue
@@ -80,10 +82,10 @@ def split_fasta(infasta, outfasta, symbol = 'N', exact:bool = True):
 
 	symbol_len = len(symbol)
 	symbol += '+' # make a 're' match to indicate one or more symbol
-	fh = gt_file.perfect_open(infasta)
+	fh = go_file.perfect_open(infasta)
 	out = open(outfasta, 'w')
 	print(symbol, symbol_len)
-	for t, seq, _ in sequtil.seq_reader(fh):
+	for t, seq, _ in io_seq.iterator(fh):
 		c, start, end = 0, 0, 0
 		gaps = findall(symbol, seq)
 
@@ -137,8 +139,8 @@ def reorder_PE_fq(infq1, infq2, outdir=None):
 	fq1 = io_seq.seq_to_dict(infq1, qual=True, len_cutoff=0)
 	fq2 = io_seq.seq_to_dict(infq2, qual=True, len_cutoff=0)
 
-	if '.gz' in infq1:infq1 = gt_file.get_prefix(infq1, include_path=True)
-	if '.gz' in infq2:infq2 = gt_file.get_prefix(infq2, include_path=True)
+	if '.gz' in infq1:infq1 = go_file.get_file_prefix(infq1, include_path=True)
+	if '.gz' in infq2:infq2 = go_file.get_file_prefix(infq2, include_path=True)
 
 	if outdir:
 		fq1_out = open('%s/%s' % (outdir, os.path.basename(infq1)), 'w')
@@ -189,7 +191,7 @@ def extract_seq(inseq, idlist, outseq, outqual:bool=False, \
 	match, negmatch = {}, {}
 	match_out = open(outseq, 'w')
 	if out_negmatch:negmatch_out = open(outseq + '.negmatch', 'w')
-	fh = gt_file.perfect_open(inseq)
+	fh = go_file.perfect_open(inseq)
 
 	if outqual:
 		for t, seq, _ in io_seq.iterator(fh):
@@ -208,7 +210,6 @@ def extract_seq(inseq, idlist, outseq, outqual:bool=False, \
 				continue
 			negmatch[t] = [seq]
 			if out_negmatch:negmatch_out.write('>%s\n%s\n' % (t, seq))
-	fh.close()
-	match_out.close()
-	negmatch_out.close()
+	go_file.close_file(fh, match_out)
+	if out_negmatch:negmatch_out.close()
 	return match, negmatch

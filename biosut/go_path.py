@@ -8,7 +8,7 @@ The :mod:`biosut.go_path` includes functions relate to path operations.
 import os
 import sys
 
-def check_exist(*paths, check_dir_empty:bool=False):
+def check_path_exist(*paths, check_empty:bool=False):
 	"""
 	Check if path is exists, exits if path does not exist.
 
@@ -31,11 +31,11 @@ def check_exist(*paths, check_dir_empty:bool=False):
 			logger.error('Path *%s* does not exists.', p)
 			sys.exit()
 		if check_empty:
-			check_empty(p)
+			check_path_empty(p)
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
-def sure_exist(*paths):
+def sure_path_exist(*paths):
 	"""
 	Check if path exists, path will be created if not exists.
 
@@ -52,7 +52,7 @@ def sure_exist(*paths):
 
 	final_paths = []
 	for p in paths:
-		p = path.abs_path(p)
+		p = abs_path(p)
 		final_paths.append(p)
 		if not os.path.exists(p):
 			try:
@@ -63,7 +63,7 @@ def sure_exist(*paths):
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
-def check_empty(*dirs):
+def check_path_empty(*dirs):
 	"""
 	Check if directory(s) is empty.
 
@@ -167,7 +167,7 @@ def find_db_path(db_v:str):
 
 	db = os.environ.get(db_v)
 	if db:
-		cls.check_empty(db)
+		check_empty(db)
         return db
 	else:
 	    logger.error('Did not find %s'%db)

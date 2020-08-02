@@ -5,7 +5,7 @@ The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 # License: GNU v3.0
 
 import os
-from .biosys import gt_file
+from .go_file import perfect_open
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 def iterator(fh, chop_comment:bool=False):
@@ -64,7 +64,7 @@ def fq2fa(infq, outfa):
 		Output converted FASTA file.
 	"""
 
-	fh = gt_file.perfect_open(fq)
+	fh = perfect_open(fq)
 	with open(outfa, 'w') as outf:
 		for t, seq, _ in cls.seq_reader(fh):
 			outf.write('>' + t + '\n' + seq + '\n')
@@ -108,7 +108,7 @@ def gc_to_dict(cls, inseq:str, len_cutoff:int = 0, length:bool = False):
 	"""
 	gc = {}
 	# use perfect_open to deal with*.gz files
-	fh = gt_file.perfect_open(seqs)
+	fh = perfect_open(seqs)
 	# use low-level parser to speed up when dealing with super large data
 	# jlli6t, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
 	# it's acceptable while considering file size.
@@ -137,7 +137,7 @@ def seq_to_dict(cls, inseq:str, outqual:bool = False, len_cutoff:int=0):
 	"""
 
 	seqs = {}
-	fh = gt_file.perfect_open(fasta)
+	fh = perfect_open(fasta)
 	for t, seq, _ in iterator(fh):
 		if len(seq) < len_cutoff:continue
 		seqs[t] = [seq]
@@ -162,7 +162,7 @@ def evaluate_genome(cls, genome, len_cutoff:int=500):
 		minimal contig, gap number, gc ratio.
 		"""
 
-	fh = gt_file.perfect_open(genome)
+	fh = perfect_open(genome)
 	gap, gc, contig_num, contig_len = 0, 0, 0, []
 	for t, seq, _ in cls.iterator(fh):
 		if len(seq) < len_cutoff:continue

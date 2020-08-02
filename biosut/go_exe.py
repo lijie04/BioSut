@@ -54,3 +54,6 @@ def exe_cmd(cmd, shell:bool=True):
 		logger.error('Error encountered while executing:\n%s\nError message:\n%s\n' %(cmd, err))
 		sys.exit()
 	return out, err
+
+
+	

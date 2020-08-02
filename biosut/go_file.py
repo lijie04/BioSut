@@ -24,7 +24,7 @@ def _check(f):
 		logger.error('File * %s * does not exists.', f)
 		sys.exit()
 
-def check_exist(*files, check_file_empty:bool=False):
+def check_file_exist(*files, check_empty:bool=False):
 	"""
 	Check if file (s) exists, exit if file not existed.
 
@@ -47,7 +47,7 @@ def check_exist(*files, check_file_empty:bool=False):
 		if check_empty:
 			check_file_empty(f)
 
-def check_empty(*files):
+def check_file_empty(*files):
 	"""
 	Check if file is empty.
 
@@ -65,7 +65,7 @@ def check_empty(*files):
 			logger.error('File * %s * is empty.', f)
 			sys.exit()
 
-def get_prefix(f:str, times:int=1, split_symbol='.', include_path:bool=False):
+def get_file_prefix(f:str, times:int=1, split_symbol='.', include_path:bool=False):
 	"""
 	Get prefix of file, e.g. file is test.fa, then return test
 
@@ -94,7 +94,7 @@ def get_prefix(f:str, times:int=1, split_symbol='.', include_path:bool=False):
 #		if include_path:return os.path.splitext(f)[0]
 #		return os.path.splitext(os.path.basename(f))[0]
 
-def get_path(*files):
+def get_file_path(*files):
     """
 	Get absolute path of input and return.
 
@@ -118,11 +118,32 @@ def perfect_open(file_in:str):
 	"""
 	Make a perfect open for file
 
+	Parameters
+	----------
+	file_in : str
+		input file to open
+
 	Returns
 	-------
 	str
-		Return file handle
+		Return file handle (s)
 	"""
+	#final_files = []
+	#for f in file_in:
+		#final_files.append(gzip.open(f, 'rt')) if '.gz' in f else final_files.append(open(f, 'r'))
+	if '.gz' in file_in:return gzip.open(file_in, 'rt')
+	return open(file_in, 'r')
 
-	if '.gz' in f:return gzip.open(f, 'rt')
-	return open(f, 'r')
+def close_file(*file_handle):
+	"""
+	Close file handles.
+
+	Parameters
+	----------
+	file_handle : str
+		Input file handles (s)
+
+	Results
+	-------
+		Close all file handles.
+	"""
