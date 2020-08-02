@@ -1,6 +1,7 @@
 include MANIFEST.in
 include COPYING.txt
 include README.md
+include version
 
 global-exclude *.xls
 global-exclude *.png
