@@ -6,8 +6,8 @@ The :mod:`biosut.bioseq` includes utilities to operate sequence files.
 
 from re import findall
 
-from .biosut import io_seq
-from .biosut import go_file
+import .io_seq
+import .go_file
 
 def select_seq(inseq, outseq, longer = None, shorter = None, \
 				first:float = 0, end:float = 0, outqual=False):

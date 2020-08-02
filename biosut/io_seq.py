@@ -5,7 +5,7 @@ The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 # License: GNU v3.0
 
 import os
-from .biosut.go_file import perfect_open
+from .go_file import perfect_open
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 def iterator(fh, chop_comment:bool=False):

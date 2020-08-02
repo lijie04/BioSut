@@ -7,8 +7,8 @@ The :mod:`biosut.alter_bam` includes some bam operation.
 
 from re import findall
 
-from .biosut import go_exe
-from .biosut import alter_seq
+import .go_exe
+import .alter_seq
 
 def extract_reads(bam, ref, out_prefix, **kargs):
     """
