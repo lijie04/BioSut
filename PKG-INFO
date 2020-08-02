@@ -1,0 +1,17 @@
+Metadata-Version: 1.2
+Name: biosut
+Version: biosut.0.1.0.-2020-06-23-
+Summary: biology small suite for related bioinformatics operations.
+Home-page: https://github.com/jlli6t/biosut
+Author: M.M Jie Li
+Author-email: mm.jlli6t@gmail.com
+Maintainer: M.M Jie Li
+Maintainer-email: mm.jlli6t@gmail.com
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: biology bioinformatics
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Operating System :: Unix
+Requires-Python: >=3.6

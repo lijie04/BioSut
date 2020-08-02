@@ -5,7 +5,6 @@
 /build/
 /dist/
 /develop-eggs/
-*.egg-info/
 *.pyc
 
 # docs

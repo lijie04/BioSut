@@ -13,7 +13,7 @@ def version():
 
 setup(
 	name = 'biosut',
-	description = 'biology small suite for related bioinformatics operations.',
+	description = 'biology suite for bioinformatics operations.',
 	version = version(),
 	url='https://github.com/jlli6t/biosut', # optional
 
