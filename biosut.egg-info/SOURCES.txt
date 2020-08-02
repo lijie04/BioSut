@@ -3,6 +3,7 @@ MANIFEST.in
 README.md
 setup.cfg
 setup.py
+version
 biosut/__init__.py
 biosut/alter_bam.py
 biosut/alter_seq.py

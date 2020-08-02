@@ -3,6 +3,7 @@ include COPYING.txt
 include README.md
 include version
 
+
 global-exclude *.xls
 global-exclude *.png
 global-exclude __pycache__
