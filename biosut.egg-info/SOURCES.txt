@@ -11,6 +11,7 @@ biosut/go_file.py
 biosut/go_path.py
 biosut/io_bam.py
 biosut/io_seq.py
+biosut/version.py
 biosut.egg-info/PKG-INFO
 biosut.egg-info/SOURCES.txt
 biosut.egg-info/dependency_links.txt

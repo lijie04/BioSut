@@ -1,20 +1,12 @@
 # -*- coding:utf-8 -*-
 
 from setuptools import setup, find_packages
-import os
-
-def version():
-	vers1 = os.path.dirname(os.path.realpath(__file__)) + '/VERSION'
-	vers2 = os.path.dirname(os.path.realpath(__file__)) + './biosut/VERSION'
-	if os.path.isfile(vers1):return open(vers1).readline().strip()
-	if os.path.isfile(vers2):return open(vers2).readline().strip()
-	return 'unknown version'
-
+from biosut.version import Version
 
 setup(
 	name = 'biosut',
 	description = 'biology suite for bioinformatics operations.',
-	version = version(),
+	version = Version(),
 	url='https://github.com/jlli6t/biosut', # optional
 
 	author = 'M.M Jie Li',
