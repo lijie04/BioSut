@@ -5,7 +5,7 @@ import os
 
 def version():
 	vers_file = os.path.dirname(os.path.realpath(__file__)) + '/VERSION'
-	
+
 	if os.path.isfile(vers_file):
 		return open(vers_file).readline().strip()
 	else:
@@ -17,7 +17,7 @@ setup(
 	version = version(),
 	url='https://github.com/jlli6t/biosut', # optional
 
-	author = 'M.M Jie Li', 
+	author = 'M.M Jie Li',
 	author_email = 'mm.jlli6t@gmail.com',
 	maintainer = 'M.M Jie Li',
 	maintainer_email = 'mm.jlli6t@gmail.com',
@@ -28,9 +28,7 @@ setup(
 				'Operating System :: Unix',
 		],
 	keywords = 'biology bioinformatics',
-	
+
 	packages = find_packages(),
 	python_requires = '>=3.6',
 )
-
-
