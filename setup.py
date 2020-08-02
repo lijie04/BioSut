@@ -4,10 +4,10 @@ from setuptools import setup, find_packages
 import os
 
 def version():
-	vers_file1 = os.path.dirname(os.path.realpath(__file__)) + '/VERSION'
-	vers_file2 = os.path.dirname(os.path.realpath(__file__)) + './biosut.VERSION'
-	if os.path.isfile(vers_file1):return open(vers_file).readline().strip()
-	if os.path.isfile(vers_file2):return open(vers_file).readline().strip()
+	vers1 = os.path.dirname(os.path.realpath(__file__)) + '/VERSION'
+	vers2 = os.path.dirname(os.path.realpath(__file__)) + './biosut/VERSION'
+	if os.path.isfile(vers1):return open(vers1).readline().strip()
+	if os.path.isfile(vers2):return open(vers2).readline().strip()
 	return 'unknown version'
 
 
