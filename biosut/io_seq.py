@@ -1,11 +1,12 @@
 """
 The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 """
+
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
 
 import os
-from .go_file import perfect_open
+from .gt_file import perfect_open
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 def iterator(fh, chop_comment:bool=False):
@@ -86,7 +87,7 @@ def string_gc(string):
 	string = string.upper()
 	return string.count('G') + string.count('C')
 
-def gc_to_dict(cls, inseq:str, len_cutoff:int = 0, length:bool = False):
+def gc_to_dict(inseq:str, len_cutoff:int = 0, length:bool = False):
 	"""
 	Count GC  of sequences and other characteristics of sequences \
 	to dict.
@@ -108,18 +109,18 @@ def gc_to_dict(cls, inseq:str, len_cutoff:int = 0, length:bool = False):
 	"""
 	gc = {}
 	# use perfect_open to deal with*.gz files
-	fh = perfect_open(seqs)
+	fh = perfect_open(inseq)
 	# use low-level parser to speed up when dealing with super large data
 	# jlli6t, 2020-06-23, use Heng Li's readfq instead, roughly, 15% slower than Bio,
 	# it's acceptable while considering file size.
-	for t, seq, _ in cls.iterator(fh):
+	for t, seq, _ in iterator(fh):
 		if len(seq)<len_cutoff:continue
-		gc[t] = [cls.string_gc(seq)]
+		gc[t] = [string_gc(seq)]
 		if length:gc[t].append(len(seq))
 	fh.close()
 	return gc
 
-def seq_to_dict(cls, inseq:str, outqual:bool = False, len_cutoff:int=0):
+def seq_to_dict(inseq:str, outqual:bool = False, len_cutoff:int=0):
 	"""
 	Read and return sequences to dict format.
 
@@ -137,7 +138,7 @@ def seq_to_dict(cls, inseq:str, outqual:bool = False, len_cutoff:int=0):
 	"""
 
 	seqs = {}
-	fh = perfect_open(fasta)
+	fh = perfect_open(inseq)
 	for t, seq, _ in iterator(fh):
 		if len(seq) < len_cutoff:continue
 		seqs[t] = [seq]
@@ -145,7 +146,7 @@ def seq_to_dict(cls, inseq:str, outqual:bool = False, len_cutoff:int=0):
 	fh.close()
 	return seqs
 
-def evaluate_genome(cls, genome, len_cutoff:int=500):
+def evaluate_genome(genome, len_cutoff:int=500):
 	"""
 	Evaluate genome and return genome traits.
 
@@ -164,12 +165,12 @@ def evaluate_genome(cls, genome, len_cutoff:int=500):
 
 	fh = perfect_open(genome)
 	gap, gc, contig_num, contig_len = 0, 0, 0, []
-	for t, seq, _ in cls.iterator(fh):
+	for t, seq, _ in iterator(fh):
 		if len(seq) < len_cutoff:continue
 		contig_num += 1
 		contig_len.append(len(seq))
 		gap += len(findall('N+', seq))
-		gc += cls.string_gc(seq)
+		gc += string_gc(seq)
 
 	genome_size = sum(contig_len)
 	gc = round(gc/genome_size*100., 2)

@@ -1,10 +1,8 @@
 include MANIFEST.in
-include COPYING.txt
 include README.md
 include version
-
+include LICENSE
 
 global-exclude *.xls
 global-exclude *.png
 global-exclude __pycache__
-

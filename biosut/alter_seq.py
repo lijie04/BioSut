@@ -1,15 +1,16 @@
 """
 The :mod:`biosut.bioseq` includes utilities to operate sequence files.
 """
+
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
 
 from re import findall
 
-import .io_seq
-import .go_file
+from . import io_seq
+from .gt_file import perfect_open, close_file, get_file_prefix
 
-def select_seq(inseq, outseq, longer = None, shorter = None, \
+def select_seq(inseq, outseq, longer:int = 0, shorter:int = 0, \
 				first:float = 0, end:float = 0, outqual=False):
 	"""
 	Select sequences according length.
@@ -35,7 +36,7 @@ def select_seq(inseq, outseq, longer = None, shorter = None, \
 	-------
 		Trimmed FASTA/FASTQ sequences.
 	"""
-	fh = go_file.perfect_open(infasta)
+	fh = perfect_open(inseq)
 	all_length = []
 	for t, seq, _ in io_seq.iterator(fh):
 		if shorter and len(seq) < shorter:continue
@@ -45,9 +46,9 @@ def select_seq(inseq, outseq, longer = None, shorter = None, \
 
 	all_length.sort(reverse=True)
 	total = len(all_length)
-	if first:first = all_length[round(first * total) + 0.5)]
+	if first:first = all_length[round(first * total + 0.5)]
 	if end:end = all_length[total-round(end * total + 0.5)-1]
-	fh = go_file.perfect_open(infasta)
+	fh = perfect_open(infasta)
 	with open(outseq, 'w') as outf:
 		for t, seq, _ in io_seq.iterator(fh):
 			if first and len(seq) > first:continue
@@ -58,7 +59,7 @@ def select_seq(inseq, outseq, longer = None, shorter = None, \
 				outf.write('>%s\n%s\n'%(t, seq))
 	fh.close()
 
-def split_fasta(infasta, outfasta, symbol = 'N', exact:bool = True):
+def split_fasta(infasta, outfasta, symbol:str = 'N', exact:bool = True):
 	"""
 	Split sequences using symbol (e.g. Ns).
 
@@ -82,7 +83,7 @@ def split_fasta(infasta, outfasta, symbol = 'N', exact:bool = True):
 
 	symbol_len = len(symbol)
 	symbol += '+' # make a 're' match to indicate one or more symbol
-	fh = go_file.perfect_open(infasta)
+	fh = perfect_open(infasta)
 	out = open(outfasta, 'w')
 	print(symbol, symbol_len)
 	for t, seq, _ in io_seq.iterator(fh):
@@ -115,8 +116,7 @@ def split_fasta(infasta, outfasta, symbol = 'N', exact:bool = True):
 		# output the last one, as n gaps cut sequences into n+1 sequences.
 		out.write('>%s_%d|len=%s\n%s\n' % \
 					(t, c+1, len(seq)-start, seq[start:]))
-	fh.close()
-	out.close()
+	close_file(fh, out)
 
 def reorder_PE_fq(infq1, infq2, outdir=None):
 	"""
@@ -139,8 +139,8 @@ def reorder_PE_fq(infq1, infq2, outdir=None):
 	fq1 = io_seq.seq_to_dict(infq1, qual=True, len_cutoff=0)
 	fq2 = io_seq.seq_to_dict(infq2, qual=True, len_cutoff=0)
 
-	if '.gz' in infq1:infq1 = go_file.get_file_prefix(infq1, include_path=True)
-	if '.gz' in infq2:infq2 = go_file.get_file_prefix(infq2, include_path=True)
+	if '.gz' in infq1:infq1 = get_file_prefix(infq1, include_path=True)
+	if '.gz' in infq2:infq2 = get_file_prefix(infq2, include_path=True)
 
 	if outdir:
 		fq1_out = open('%s/%s' % (outdir, os.path.basename(infq1)), 'w')
@@ -154,8 +154,7 @@ def reorder_PE_fq(infq1, infq2, outdir=None):
 		fq1_out.write('@\n%s\n%s\n+\n%s\n' % (sid, fq1[t][0], fq1[t][1]))
 		fq2_out.write('@\n%s\n%s\n+\n%s\n' % (sid, fq2[t][0], fq2[t][1]))
 
-	fq1_out.close()
-	fq2_out.close()
+	close_file(fq1, fq2)
 
 def extract_seq(inseq, idlist, outseq, outqual:bool=False, \
 				out_negmatch:bool=False):
@@ -191,7 +190,7 @@ def extract_seq(inseq, idlist, outseq, outqual:bool=False, \
 	match, negmatch = {}, {}
 	match_out = open(outseq, 'w')
 	if out_negmatch:negmatch_out = open(outseq + '.negmatch', 'w')
-	fh = go_file.perfect_open(inseq)
+	fh = perfect_open(inseq)
 
 	if outqual:
 		for t, seq, _ in io_seq.iterator(fh):
@@ -210,6 +209,6 @@ def extract_seq(inseq, idlist, outseq, outqual:bool=False, \
 				continue
 			negmatch[t] = [seq]
 			if out_negmatch:negmatch_out.write('>%s\n%s\n' % (t, seq))
-	go_file.close_file(fh, match_out)
+	close_file(fh, match_out)
 	if out_negmatch:negmatch_out.close()
 	return match, negmatch

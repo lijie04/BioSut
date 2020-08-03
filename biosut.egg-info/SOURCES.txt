@@ -1,4 +1,4 @@
-COPYING.txt
+LICENSE
 MANIFEST.in
 README.md
 setup.cfg
@@ -8,9 +8,9 @@ biosut/__init__.py
 biosut/alter_bam.py
 biosut/alter_seq.py
 biosut/bioalign.py
-biosut/go_exe.py
-biosut/go_file.py
-biosut/go_path.py
+biosut/gt_exe.py
+biosut/gt_file.py
+biosut/gt_path.py
 biosut/io_bam.py
 biosut/io_seq.py
 biosut/version.py

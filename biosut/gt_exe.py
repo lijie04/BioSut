@@ -1,8 +1,8 @@
 """
-The :mod:`biosut.go_exe` includes functions relate to command execution.
+The :mod:`biosut.gt_exe` includes functions relate to command execution.
 """
 
-# Author Jie Li (mm.jlli6t@gmail.com)
+# Author: Jie Li (mm.jlli6t@gmail.com)
 # License: GNU v3.0
 
 import os
@@ -54,6 +54,3 @@ def exe_cmd(cmd, shell:bool=True):
 		logger.error('Error encountered while executing:\n%s\nError message:\n%s\n' %(cmd, err))
 		sys.exit()
 	return out, err
-
-
-	

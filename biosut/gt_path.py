@@ -1,8 +1,8 @@
 """
-The :mod:`biosut.go_path` includes functions relate to path operations.
+The :mod:`biosut.gt_path` includes functions relate to path operations.
 """
 
-# Author Jie Li (mm.jlli6t@gmail.com)
+# Author: Jie Li (mm.jlli6t@gmail.com)
 # License: GNU v3.0
 
 import os
@@ -167,8 +167,8 @@ def find_db_path(db_v:str):
 
 	db = os.environ.get(db_v)
 	if db:
-		check_empty(db)
-        return db
+		check_path_empty(db)
+		return db
 	else:
-	    logger.error('Did not find %s'%db)
+		logger.error('Did not find %s'%db)
 		sys.exit()

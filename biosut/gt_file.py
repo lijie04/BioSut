@@ -1,13 +1,14 @@
 """
-The :mod:`biosut.go_file` includes functions relate to file operations.
+The :mod:`biosut.gt_file` includes functions relate to file operations.
 """
 
-# Author Jie Li (mm.jlli6t@gmail.com)
+# Author: Jie Li (mm.jlli6t@gmail.com)
 # License: GNU v3.0
 
 import os
 import sys
 import gzip
+from .gt_path import abs_path
 
 ## deprecated, redundanted.
 def _check(f):
@@ -65,13 +66,13 @@ def check_file_empty(*files):
 			logger.error('File * %s * is empty.', f)
 			sys.exit()
 
-def get_file_prefix(f:str, times:int=1, split_symbol='.', include_path:bool=False):
+def get_file_prefix(file_in:str, times:int=1, split_symbol:str='.', include_path:bool=False):
 	"""
 	Get prefix of file, e.g. file is test.fa, then return test
 
 	Parameters
 	----------
-	f : str
+	file_in : str
 		Input file, relative path or abusolute path.
 	times : int, default 1.
 		How many times supposed to chop str
@@ -84,10 +85,10 @@ def get_file_prefix(f:str, times:int=1, split_symbol='.', include_path:bool=Fals
 	-------
 		Return prefix.
 	"""
-	f = os.path.abs_path(f).split(split_symbol)
-    f = split_symbol.join(f[0:len(f)-times-1])
-    if include_path:return f
-    return os.path.basename(f)
+	file_in = abs_path(file_in).split(split_symbol)
+	file_in = split_symbol.join(file_in[0:len(file_in)-times+1])
+	if include_path:return file_in
+	return os.path.basename(file_in)
 
 # Deprecated, to add times parameter
 #	for i in range(times):
@@ -95,7 +96,7 @@ def get_file_prefix(f:str, times:int=1, split_symbol='.', include_path:bool=Fals
 #		return os.path.splitext(os.path.basename(f))[0]
 
 def get_file_path(*files):
-    """
+	"""
 	Get absolute path of input and return.
 
 	Parameters
@@ -104,12 +105,11 @@ def get_file_path(*files):
 		Input file (s)
 
 	Return
-	-------
+	------
 	str
 		Absolute path (s) of your input file (s).
 	"""
-
-	final_paths = [os.path.dirname(cls.abs_path(f)) for f in files]
+	final_paths = [os.path.dirname(abs_path(f)) for f in files]
 
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
@@ -147,3 +147,5 @@ def close_file(*file_handle):
 	-------
 		Close all file handles.
 	"""
+	for f in file_handle:
+		f.close()
