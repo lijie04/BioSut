@@ -5,7 +5,8 @@ The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
 
-import os
+import oss
+from re import findall
 from .gt_file import perfect_open
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
@@ -87,7 +88,7 @@ def string_gc(string):
 	string = string.upper()
 	return string.count('G') + string.count('C')
 
-def gc_to_dict(inseq:str, len_cutoff:int = 0, length:bool = False):
+def gc_to_dict(inseq:str, len_cutoff:int=0, length:bool=False):
 	"""
 	Count GC  of sequences and other characteristics of sequences \
 	to dict.
@@ -120,7 +121,7 @@ def gc_to_dict(inseq:str, len_cutoff:int = 0, length:bool = False):
 	fh.close()
 	return gc
 
-def seq_to_dict(inseq:str, outqual:bool = False, len_cutoff:int=0):
+def seq_to_dict(inseq:str, outqual:bool=False, len_cutoff:int=0):
 	"""
 	Read and return sequences to dict format.
 

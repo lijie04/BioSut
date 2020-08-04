@@ -149,3 +149,21 @@ def close_file(*file_handle):
 	"""
 	for f in file_handle:
 		f.close()
+
+def find_files(Dir, suffix='fa'):
+	"""
+	Find files with suffix.
+
+	Parameters
+	----------
+	Dir : str
+		Input directory to find files
+	suffix : str, default 'fa'
+		suffix of files
+
+	Returns
+	-------
+	list
+		list of files found with full path.
+	"""
+	return [Dir+'/'+f for f in os.listdir(Dir) if f.endswith(suffix)]
