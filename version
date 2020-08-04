@@ -1,3 +1,6 @@
+2.1.0
+- add gt_file.find_files function
+
 2.0.1
 - fix io_seq import library bug.
 

@@ -164,6 +164,6 @@ def find_files(Dir, suffix='fa'):
 	Returns
 	-------
 	list
-		list of files found with full path.
+		A list of found files with full path.
 	"""
 	return [Dir+'/'+f for f in os.listdir(Dir) if f.endswith(suffix)]

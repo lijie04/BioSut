@@ -65,11 +65,10 @@ def fq2fa(infq, outfa):
 	------
 		Output converted FASTA file.
 	"""
-
 	fh = perfect_open(fq)
 	with open(outfa, 'w') as outf:
-		for t, seq, _ in cls.seq_reader(fh):
-			outf.write('>' + t + '\n' + seq + '\n')
+		for t, seq, _ in iterator(fh):
+			outf.write('>%s\n%s\n' % (t, seq))
 	fh.close()
 
 def string_gc(string):
