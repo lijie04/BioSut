@@ -1,6 +1,7 @@
 2.1.0
 - add gt_file.find_files function
 - fix io_seq minor bugs
+- add gt_file.get_seqfile_prefix function
 
 2.0.1
 - fix io_seq import library bug.
