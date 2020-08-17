@@ -8,7 +8,9 @@ The :mod:`biosut.gt_file` includes functions relate to file operations.
 import os
 import sys
 import gzip
+import re
 from .gt_path import abs_path
+
 
 ## deprecated, redundanted.
 def _check(f):
@@ -66,7 +68,7 @@ def check_file_empty(*files):
 			logger.error('File * %s * is empty.', f)
 			sys.exit()
 
-def get_file_prefix(file_in:str, times:int=1, split_symbol:str='.', include_path:bool=False):
+def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include_path:bool=False):
 	"""
 	Get prefix of file, e.g. file is test.fa, then return test
 
@@ -85,10 +87,30 @@ def get_file_prefix(file_in:str, times:int=1, split_symbol:str='.', include_path
 	-------
 		Return prefix.
 	"""
+	check_file_exist(file_in)
 	file_in = abs_path(file_in).split(split_symbol)
 	file_in = split_symbol.join(file_in[0:len(file_in)-times+1])
 	if include_path:return file_in
 	return os.path.basename(file_in)
+
+def get_seqfile_prefix(seqin:str=None):
+	"""
+	Get prefix of a sequence file.
+	e.g. file is someting_1.fastq.gz, return something.
+
+	Parameter
+	---------
+	seqin : str
+		Input FASTQ/FASTA format file.
+
+	Return
+	------
+	str:
+		Return a string indicate as the prefix of seqfile.
+	"""
+
+	seqin = os.path.basename(seqin)
+	return re.sub('.\d.fastq.gz|.\d.fq.gz|.\d.fastq|.\d.fq|.\d.fa.gz|.\d.fasta.gz|.\d.fa|.\d.fasta', '', seqin)
 
 # Deprecated, to add times parameter
 #	for i in range(times):

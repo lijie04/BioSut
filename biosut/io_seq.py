@@ -5,7 +5,7 @@ The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
 
-import oss
+import os
 from re import findall
 from .gt_file import perfect_open
 

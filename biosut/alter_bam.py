@@ -11,7 +11,7 @@ from . import gt_exe
 from . import alter_seq
 from . import io_seq
 
-def extract_reads(bam, ref, out_prefix, **kargs):
+def recover_reads(bam, ref, out_prefix, **kargs):
     """
     Extract reads from bam that mapped reference.
 
@@ -52,10 +52,10 @@ def extract_reads(bam, ref, out_prefix, **kargs):
             }
     gt_exe.is_executable('samtools')
     ref = ' '.join(io_seq.seq_to_dict(ref).keys())
-    fq1 = '%s.1.fastq' % out_prefix
-    fq2 = '%s.2.fastq' % out_prefix
-    fq_forward = '%s.forward.fastq' % out_prefix
-    fq_reverse = '%s.reverse.fastq' % out_prefix
+    fq1 = '%s.1.fq' % out_prefix
+    fq2 = '%s.2.fq' % out_prefix
+    fq_forward = '%s.forward.fq' % out_prefix
+    fq_reverse = '%s.reverse.fq' % out_prefix
 
     cmd = 'samtools view -b '
     if kargs['secondary']:cmd += flag['secondary']
@@ -85,8 +85,8 @@ def extract_reads(bam, ref, out_prefix, **kargs):
     gt_exe.exe_cmd(cmd)
 
     stat = _parse_samtools_info(samtools_info)
-    with open(out_prefix+'.retreived_reads.stat.xls', 'w') as stat_out:
-        stat_out.write('\tsingletons\tretreived reads\n')
+    with open(out_prefix+'.recover_reads.stat.xls', 'w') as stat_out:
+        stat_out.write('\tsingletons\trecover reads\n')
         for flg in stat:
             stat_out.write('%s\t%s\t%s\n' % (flg, stat[flg][0], stat[flg][1]))
     return stat
