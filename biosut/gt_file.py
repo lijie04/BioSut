@@ -24,8 +24,8 @@ def _check(f):
 	"""
 
 	if not os.path.isfile(f):
-		logger.error('File * %s * does not exists.', f)
-		sys.exit()
+		#logger.error('File * %s * does not exists.', f)
+		sys.exit('File * %s * does not exists.' % f)
 
 def check_file_exist(*files, check_empty:bool=False):
 	"""
@@ -45,8 +45,8 @@ def check_file_exist(*files, check_empty:bool=False):
 	"""
 	for	f in files:
 		if not os.path.isfile(f):
-			logger.error('File * %s * does not exists.', f)
-			sys.exit()
+			#logger.error('File * %s * does not exists.', f)
+			sys.exit('File * %s * does not exists.' % f)
 		if check_empty:
 			check_file_empty(f)
 
@@ -65,8 +65,8 @@ def check_file_empty(*files):
 	"""
 	for f in files:
 		if not os.path.getsize(f):
-			logger.error('File * %s * is empty.', f)
-			sys.exit()
+			#logger.error('File * %s * is empty.', f)
+			sys.exit('File * %s * is empty.' % f)
 
 def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include_path:bool=False):
 	"""

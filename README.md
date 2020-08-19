@@ -2,7 +2,7 @@
 [![PyPI](https://shields.io/pypi/v/biosut.svg)](https://pypi.org/project/biosut)
 
 ## Introduction
-**biosut** is a packge that integrated some biology-related bioinformatics operating modules on sequences, files, directories. 
+**biosut** is a packge that integrated some biology-related bioinformatics operating modules on sequences, files, directories.
 The biosut is open source and released under the [GNU General Public License (Version 3)](https://pypi.org/project/biosut/).
 
 ## Documentation
@@ -18,6 +18,4 @@ pip3 install biosut
 For any bugs or problems please use Issue portal.
 
 ## Copyright
-Copyright 2016 Jie Li. See COPYING.txt for further details.
-
-
+Copyright 2016 Jie Li. See LICENSE for further details.
