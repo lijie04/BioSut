@@ -87,9 +87,9 @@ def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include
 	-------
 		Return prefix.
 	"""
-	check_file_exist(file_in)
+	#check_file_exist(file_in) #check outside, to escape file not exist but still want the prefix
 	file_in = abs_path(file_in).split(split_symbol)
-	file_in = split_symbol.join(file_in[0:len(file_in)-times+1])
+	file_in = split_symbol.join(file_in[0:len(file_in)-times])
 	if include_path:return file_in
 	return os.path.basename(file_in)
 
