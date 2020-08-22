@@ -7,10 +7,7 @@ The :mod:`biosut.gt_exe` includes functions relate to command execution.
 
 import os
 import sys
-import logging
 import subprocess as sp
-
-logger = logging.getLogger(__name__)
 
 def is_executable(*prog):
 	"""
@@ -29,7 +26,7 @@ def is_executable(*prog):
 		code = sp.run(['which', p], stdout=sp.PIPE, stderr=sp.STDOUT).returncode
 
 		if code:
-			logger.error('Program * %s * is not found', p)
+			logger.error(f'Program * {p} * is not found')
 			sys.exit()
 
 def exe_cmd(cmd, shell:bool=True):
@@ -51,6 +48,5 @@ def exe_cmd(cmd, shell:bool=True):
 	proc = sp.Popen(cmd, shell=shell, stdout=sp.PIPE, stderr=sp.PIPE)
 	out, err = proc.communicate()
 	if proc.returncode != 0:
-		logger.error('Error encountered while executing:\n%s\nError message:\n%s\n' %(cmd, err))
-		sys.exit()
+		sys.exit(f'Error encountered while executing:{cmd}\nError message:{err}'
 	return out, err

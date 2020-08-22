@@ -24,14 +24,13 @@ def check_path_exist(*paths, check_empty:bool=False):
 		Return full path (s).
 	"""
 	final_paths = []
-	for p in paths:
-		p = abs_path(p)
-		final_paths.append(p)
-		if not os.path.exists(p):
-			logger.error('Path *%s* does not exists.', p)
-			sys.exit()
+	for pth in paths:
+		pth = abs_path(paths)
+		final_paths.append(pth)
+		if not os.path.exists(pth):
+			sys.exit(f'Path *{pth}* does not exists.')
 		if check_empty:
-			check_path_empty(p)
+			check_path_empty(pth)
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
@@ -51,15 +50,15 @@ def sure_path_exist(*paths):
 	"""
 
 	final_paths = []
-	for p in paths:
-		p = abs_path(p)
-		final_paths.append(p)
-		if not os.path.exists(p):
+	for pth in paths:
+		pth = abs_path(pth)
+		final_paths.append(pth)
+		if not os.path.exists(pth):
 			try:
-				os.makedirs(p)
+				os.makedirs(pth)
 			except OSError as e:
-				logger.error('Path *%s* is not creatable.', p, exc_info=True)
-				sys.exit()
+				#logger.error(f'Path *{PATH}* is not creatable.', exc_info=True)
+				sys.exit(f'Path *{pth}* is not creatable.')
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
@@ -77,10 +76,10 @@ def check_path_empty(*dirs):
 		Exit and report error msg while input directory (s) is empty.
 	"""
 
-	for d in dirs:
-		if not os.listdir(d):
-			logger.error('Directory %s is empty.', d)
-			sys.exit()
+	for dr in dirs:
+		if not os.listdir(dr):
+			#logger.error('Directory %s is empty.', d)
+			sys.exit(f'Directory {dr} is empty')
 
 def real_path(*paths):
 	"""
@@ -111,7 +110,7 @@ def real_path(*paths):
 	'/full/path/to/../../aaa'
 	"""
 
-	final_paths = [os.path.realpath(p) for p in paths]
+	final_paths = [os.path.realpath(pth) for pth in paths]
 
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
@@ -146,7 +145,7 @@ def abs_path(*paths):
 	>>> final_paths = path.abs_path(c)
 	'/full/path/to/aaa'
 	"""
-	final_paths = [os.path.abspath(p) for p in paths]
+	final_paths = [os.path.abspath(pth) for pth in paths]
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
@@ -169,6 +168,5 @@ def find_db_path(db_v:str):
 	if db:
 		check_path_empty(db)
 		return db
-	else:
-		logger.error('Did not find %s'%db)
-		sys.exit()
+	#logger.error('Did not find %s'%db)
+	sys.exit(f'Did not find {db}')

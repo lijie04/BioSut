@@ -45,19 +45,19 @@ def recover_reads(bam, ref, out_prefix, **kargs):
     """
 
     flag = {
-            'secondary': '-F 0X100 ',
-            'qcfail': '-F 0X200 ',
-            'duplicates': '-F 0X400 ',
-            'supplementary': '-F 0X800 '
+            'secondary': ' -F 0X100 ',
+            'qcfail': ' -F 0X200 ',
+            'duplicates': ' -F 0X400 ',
+            'supplementary': ' -F 0X800 '
             }
     gt_exe.is_executable('samtools')
     ref = ' '.join(io_seq.seq_to_dict(ref).keys())
-    fq1 = '%s.1.fq' % out_prefix
-    fq2 = '%s.2.fq' % out_prefix
-    fq_forward = '%s.forward.fq' % out_prefix
-    fq_reverse = '%s.reverse.fq' % out_prefix
+    fq1 = f'{out_prefix}.1.fq'
+    fq2 = f'{out_prefix}.2.fq'
+    fq_forward = f'{out_prefix}.forward.fq'
+    fq_reverse = f'{out_prefix}.reverse.fq'
 
-    cmd = 'samtools view -b '
+    cmd = 'samtools view -b'
     if kargs['secondary']:cmd += flag['secondary']
     if kargs['qcfail']:cmd += flag['qcfail']
     if kargs['duplicates']: cmd += flag['duplicates']
@@ -65,30 +65,29 @@ def recover_reads(bam, ref, out_prefix, **kargs):
 
     samtools_info = []
 
-    cmd_pair = cmd + '-f 0X2 %s %s|samtools fastq -1 %s -2 %s' % \
-                (bam, ref, fq1, fq2)
+    cmd_pair = cmd + f'-f 0X2 {bam} {ref}|samtools fastq -1 {fq1} -2 {fq2}'
     out, err = gt_exe.exe_cmd(cmd_pair)
     samtools_info.append(err)
     alter_seq.reorder_PE_fq(fq1, fq2, outdir=None)
 
-    cmd_forward = cmd + '-F 0X2 -F OX10 %s %s|samtools fastq -o %s -0 %s' % \
-                    (bam, ref, fq_forward, fq_forward)
+    cmd_forward = cmd + f'-F 0X2 -F OX10 {bam} {ref}|\
+                        samtools fastq -o {fq_forward} -0 {fq_forward}'
     out, err = gt_exe.exe_cmd(cmd_forward)
     samtools_info.append(err)
 
-    cmd_reverse = cmd + '-F 0X2 -f 0X10 %s %s|samtools fastq -o %s -0 %s' % \
-                    (bam, ref, fq_reverse, fq_reverse)
+    cmd_reverse = cmd + f'-F 0X2 -f 0X10 {bam} {ref}|\
+                        samtools fastq -o {fq_reverse} -0 {fq_reverse}'
     out, err = gt_exe.exe_cmd(cmd_reverse)
     samtools_info.append(err)
 
-    cmd = 'gzip -f %s -2 %s %s %s' % (fq1, fq2, fq_forward, fq_reverse)
+    cmd = f'gzip -f {fq1} {fq2} {fq_forward} {fq_reverse}'
     gt_exe.exe_cmd(cmd)
 
     stat = _parse_samtools_info(samtools_info)
-    with open(out_prefix+'.recover_reads.stat.xls', 'w') as stat_out:
+    with open(f'{out_prefix}.recover_reads.stat.xls', 'w') as stat_out:
         stat_out.write('\tsingletons\trecover reads\n')
         for flg in stat:
-            stat_out.write('%s\t%s\t%s\n' % (flg, stat[flg][0], stat[flg][1]))
+            stat_out.write(f'{flg}\t{stat[flg][0]}\t{stat[flg][1]}\n')
     return stat
 
 def _parse_samtools_info(err):

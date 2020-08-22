@@ -68,7 +68,7 @@ def fq2fa(infq, outfa):
 	fh = perfect_open(fq)
 	with open(outfa, 'w') as outf:
 		for t, seq, _ in iterator(fh):
-			outf.write('>%s\n%s\n' % (t, seq))
+			outf.write(f'>{t}\n{seq}\n')
 	fh.close()
 
 def string_gc(string):

@@ -43,12 +43,12 @@ def check_file_exist(*files, check_empty:bool=False):
 		Process will be killed if file is not exist.
 		If `check_empty` is True, then process will be killed if file is empty.
 	"""
-	for	f in files:
-		if not os.path.isfile(f):
+	for	FILE in files:
+		if not os.path.isfile(FILE):
 			#logger.error('File * %s * does not exists.', f)
-			sys.exit('File * %s * does not exists.' % f)
+			sys.exit(f'File * {FILE} * does not exists.')
 		if check_empty:
-			check_file_empty(f)
+			check_file_empty(FILE)
 
 def check_file_empty(*files):
 	"""
@@ -63,10 +63,10 @@ def check_file_empty(*files):
 	-------
 		Exit and report errors if file is empty.
 	"""
-	for f in files:
-		if not os.path.getsize(f):
+	for FILE in files:
+		if not os.path.getsize(FILE):
 			#logger.error('File * %s * is empty.', f)
-			sys.exit('File * %s * is empty.' % f)
+			sys.exit(f'File * {FILE} * is empty.')
 
 def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include_path:bool=False):
 	"""
@@ -169,8 +169,8 @@ def close_file(*file_handle):
 	-------
 		Close all file handles.
 	"""
-	for f in file_handle:
-		f.close()
+	for fh in file_handle:
+		fh.close()
 
 def find_files(Dir, suffix='fa'):
 	"""

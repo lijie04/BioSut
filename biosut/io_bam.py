@@ -102,7 +102,7 @@ def is_sorted(bam):
 	-------
 		Bool value.
 	"""
-	cmd = 'samtools view -H %s|head -n 1' % bam
+	cmd = f'samtools view -H {bam}|head -n 1'
 	out, err = exe_cmd(cmd)
 	if 'unsorted' in out.decode():return False
 	return True
