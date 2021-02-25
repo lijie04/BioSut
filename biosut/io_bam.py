@@ -4,6 +4,7 @@ The :mod:`biosut.io_bam` includes some bam operation.
 
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
+# Copyrigth: 2015 -
 
 import os
 import pysam as ps

@@ -4,6 +4,8 @@ The :mod:`biosut.alter_bam` includes some bam operation.
 
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
+# Copyrigth: 2015 -
+
 
 from re import findall
 
@@ -44,12 +46,27 @@ def recover_reads(bam, ref, out_prefix, **kargs):
         ### And return paired fastq 1 &2, unpaired forward fastq 1 and reverse fastq 2 file.
     """
 
+    def _parse_samtools_info(err):
+#       	return findall('discarded (\d+) singletons\\n.*processed (\d+) reads', err.decode())[0]
+        stat = {}
+#       	stats['singletons'] = {}
+#   	stats['retreived reads'] = {}
+        flags = ['paired', 'forward', 'reverse']
+
+        for flg, err in zip(flags, errs):
+            err = findall('discarded (\d+) singletons\\n.*processed (\d+) reads', err.decode())[0]
+            #stats['singletons'][flg] = err[0]
+            #stats['retreived reads'][flg] = err[1]
+            stats[flg] = [err[0], err[1]]
+        return stat
+
     flag = {
-            'secondary': ' -F 0X100 ',
-            'qcfail': ' -F 0X200 ',
-            'duplicates': ' -F 0X400 ',
-            'supplementary': ' -F 0X800 '
+            'secondary': ' -F 0x100 ',
+            'qcfail': ' -F 0x200 ',
+            'duplicates': ' -F 0x400 ',
+            'supplementary': ' -F 0x800 '
             }
+
     gt_exe.is_executable('samtools')
     ref = ' '.join(io_seq.seq_to_dict(ref).keys())
     fq1 = f'{out_prefix}.1.fq'
@@ -57,7 +74,7 @@ def recover_reads(bam, ref, out_prefix, **kargs):
     fq_forward = f'{out_prefix}.forward.fq'
     fq_reverse = f'{out_prefix}.reverse.fq'
 
-    cmd = 'samtools view -b'
+    cmd = 'samtools view -b -F 0x4'
     if kargs['secondary']:cmd += flag['secondary']
     if kargs['qcfail']:cmd += flag['qcfail']
     if kargs['duplicates']: cmd += flag['duplicates']
@@ -65,17 +82,17 @@ def recover_reads(bam, ref, out_prefix, **kargs):
 
     samtools_info = []
 
-    cmd_pair = cmd + f'-f 0X2 {bam} {ref}|samtools fastq -1 {fq1} -2 {fq2}'
+    cmd_pair = cmd + f'-f 0x2 {bam} {ref}|samtools fastq -1 {fq1} -2 {fq2}'
     out, err = gt_exe.exe_cmd(cmd_pair)
     samtools_info.append(err)
     alter_seq.reorder_PE_fq(fq1, fq2, outdir=None)
 
-    cmd_forward = cmd + f'-F 0X2 -F OX10 {bam} {ref}|\
+    cmd_forward = cmd + f'-F 0x2 -F 0x10 {bam} {ref}|\
                         samtools fastq -o {fq_forward} -0 {fq_forward}'
     out, err = gt_exe.exe_cmd(cmd_forward)
     samtools_info.append(err)
 
-    cmd_reverse = cmd + f'-F 0X2 -f 0X10 {bam} {ref}|\
+    cmd_reverse = cmd + f'-F 0x2 -f 0x10 {bam} {ref}|\
                         samtools fastq -o {fq_reverse} -0 {fq_reverse}'
     out, err = gt_exe.exe_cmd(cmd_reverse)
     samtools_info.append(err)
@@ -90,20 +107,6 @@ def recover_reads(bam, ref, out_prefix, **kargs):
             stat_out.write(f'{flg}\t{stat[flg][0]}\t{stat[flg][1]}\n')
     return stat
 
-def _parse_samtools_info(err):
-#	return findall('discarded (\d+) singletons\\n.*processed (\d+) reads', err.decode())[0]
-    stat = {}
-#	stats['singletons'] = {}
-#	stats['retreived reads'] = {}
-    flags = ['paired', 'forward', 'reverse']
-
-    for flg, err in zip(flags, errs):
-        err = findall('discarded (\d+) singletons\\n.*processed (\d+) reads', err.decode())[0]
-        #stats['singletons'][flg] = err[0]
-        #stats['retreived reads'][flg] = err[1]
-        stats[flg] = [err[0], err[1]]
-    return stat
-
 # deprecated, use alter_seq.reorder_PE_fq(infq1, infq2, outdir=None) instead.
 #	def _re_order_pair_fq(fq1, fq2):
 #		fq1_out = fq1
@@ -116,16 +119,45 @@ def _parse_samtools_info(err):
 #				fq1_out.write('@\n%s\n%s\n+\n%s\n'%(sid, fq1[sid][0], fq1[sid][1])
 #				fq2_out.write('@\n%s\n%s\n+\n%s\n'%(sid, fq2[sid][0], fq2[sid][1])
 
+def filter_bam(infile:str=None, outfile:str=None, bam:bool=False):
+    """
+    Filter non-interested alignments.
 
-#def infer_identity(aln):
-#	""" Infer identity of alignment, denominator not include hard-clipped bases, soft-clipped bases are included, I consider soft-clipp as gap-open"""
-#	matched_bases = [int(i) for i in findall(r"(\d*)M", aln.cigarstring)] ## M indicates matched, so extracted all "Matched" bases
-#	return sum(matched_bases)*100 / aln.infer_query_length()  ## use infer_query_length() as query may been trimmed while mapping (not trimming while QC)
+    Parameters
+    ----------
+    infile : str
+        input BAM/SAM file.
+    outfile : str
+        output BAM/SAM file.
+    bam : bool, default is False
+        Input file is bam or not.
+    """
 
+def infer_identity(aln):
+	"""
+    Infer identity of alignment, hard-clipped bases were not included in denominator, \
+    but soft-clipped bases are included, as I consider soft-clipp as gap-open
 
-#def infer_alignlen_ratio(aln):
-#	"""Infer alignment length ratio weighting by Denominator has hard-clipped bases included to infer the real read length"""
-#	return aln.query_alignment_length*100 / aln.infer_read_length() ## here I have hard-clipped bases included
+    Parameters
+    ----------
+    aln : str
+        alingment line from sam
+
+    Return
+    ------
+        Return identity value.
+    """
+	matched_bases = [int(i) for i in findall(r"(\d*)M", aln.cigarstring)]
+    ## use infer_query_length() as query may been trimmed while mapping (not trimming while QC)
+    # actually should include trimmed bases here? 2020-08-29
+	return sum(matched_bases)*100 / aln.infer_query_length()
+
+def infer_alignlen_ratio(aln):
+	"""
+    Infer alignment length ratio, weighting by denominator \
+    has hard-clipped bases included to infer the real read length.
+    """
+	return aln.query_alignment_length*100 / aln.infer_read_length() ## here include hard-clip
 
 #def judge_insert(aln):
 

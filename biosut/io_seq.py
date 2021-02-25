@@ -4,10 +4,12 @@ The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
+# Copyrigth: 2015 -
 
 import os
 from re import findall
 from .gt_file import perfect_open
+
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 def iterator(fh, chop_comment:bool=False):

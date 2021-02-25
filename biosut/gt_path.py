@@ -4,17 +4,19 @@ The :mod:`biosut.gt_path` includes functions relate to path operations.
 
 # Author: Jie Li (mm.jlli6t@gmail.com)
 # License: GNU v3.0
+# Copyrigth: 2015 -
 
 import os
 import sys
+from loguru import logger
 
-def check_path_exist(*paths, check_empty:bool=False):
+def check_path_exist(*paths_in, check_empty:bool=False):
 	"""
 	Check if path is exists, exits if path does not exist.
 
 	Parameters
 	----------
-	paths : str (s)
+	paths_in : str (s)
 		Path (s) that will be checked.
 	check_empty : bool, default True
 		Whether to check path emptiness.
@@ -24,17 +26,18 @@ def check_path_exist(*paths, check_empty:bool=False):
 		Return full path (s).
 	"""
 	final_paths = []
-	for pth in paths:
-		pth = abs_path(paths)
+	for pth in paths_in:
+		pth = abs_path(pth)
 		final_paths.append(pth)
 		if not os.path.exists(pth):
-			sys.exit(f'Path *{pth}* does not exists.')
+			logger.error('Path *{pth}* does not exists.')
+			sys.exit()
 		if check_empty:
 			check_path_empty(pth)
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
-def sure_path_exist(*paths):
+def sure_path_exist(*paths_in):
 	"""
 	Check if path exists, path will be created if not exists.
 
@@ -50,15 +53,15 @@ def sure_path_exist(*paths):
 	"""
 
 	final_paths = []
-	for pth in paths:
+	for pth in paths_in:
 		pth = abs_path(pth)
 		final_paths.append(pth)
 		if not os.path.exists(pth):
 			try:
 				os.makedirs(pth)
 			except OSError as e:
-				#logger.error(f'Path *{PATH}* is not creatable.', exc_info=True)
-				sys.exit(f'Path *{pth}* is not creatable.')
+				logger.error('Path *{PATH}* is not creatable.')
+				sys.exit()
 	if len(final_paths) == 1:return final_paths[0]
 	return final_paths
 
@@ -78,8 +81,8 @@ def check_path_empty(*dirs):
 
 	for dr in dirs:
 		if not os.listdir(dr):
-			#logger.error('Directory %s is empty.', d)
-			sys.exit(f'Directory {dr} is empty')
+			logger.error('Directory {dr} is empty.')
+			sys.exit()
 
 def real_path(*paths):
 	"""
@@ -168,5 +171,5 @@ def find_db_path(db_v:str):
 	if db:
 		check_path_empty(db)
 		return db
-	#logger.error('Did not find %s'%db)
-	sys.exit(f'Did not find {db}')
+	logger.error('Did not find {db}')
+	sys.exit()

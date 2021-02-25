@@ -4,6 +4,7 @@ The :mod:`biosut.gt_file` includes functions relate to file operations.
 
 # Author: Jie Li (mm.jlli6t@gmail.com)
 # License: GNU v3.0
+# Copyrigth: 2015 -
 
 import os
 import sys
@@ -23,50 +24,47 @@ def _check(f):
 		Input file that will be check.
 	"""
 
-	if not os.path.isfile(f):
-		#logger.error('File * %s * does not exists.', f)
-		sys.exit('File * %s * does not exists.' % f)
+	if not os.path.isfile(f):return False
+	return True
 
-def check_file_exist(*files, check_empty:bool=False):
+def check_file_exist(*files_in, check_empty:bool=False):
 	"""
 	Check if file (s) exists, exit if file not existed.
 
 	Parameters
 	----------
-	fls : str
+	files_in : str
 		Input file (s) to check existance.
-	check_file_empty : bool, default False.
+	check_empty : bool, default False.
 		File emptiness will be checked.
 
 	Result
 	------
-		Process will be killed if file is not exist.
-		If `check_empty` is True, then process will be killed if file is empty.
+		return a boolean value.
 	"""
-	for	FILE in files:
-		if not os.path.isfile(FILE):
-			#logger.error('File * %s * does not exists.', f)
-			sys.exit(f'File * {FILE} * does not exists.')
-		if check_empty:
-			check_file_empty(FILE)
+	for	fl in files_in:
+		if not os.path.isfile(fl):
+			logger.error('{fl} is not exist.')
+			sys.exit()
+		if check_empty:check_file_empty(fl)
 
-def check_file_empty(*files):
+def check_file_empty(*files_in):
 	"""
 	Check if file is empty.
 
 	Parameters
 	----------
-	fls : str
+	files_in : str
 		Input file (s) to check emptiness.
 
 	Results
 	-------
-		Exit and report errors if file is empty.
+		return a boolean value.
 	"""
-	for FILE in files:
-		if not os.path.getsize(FILE):
-			#logger.error('File * %s * is empty.', f)
-			sys.exit(f'File * {FILE} * is empty.')
+	for fl in files_in:
+		if not os.path.getsize(fl):
+			logger.error('{fl} is empty.')
+			sys.exit()
 
 def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include_path:bool=False):
 	"""
@@ -80,28 +78,27 @@ def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include
 		How many times supposed to chop str
     split_symbol : str, default '.'
         symbol to use to split file names
-	include_path : bool, default False
-		Whether to include path or not.
+	include_path : boolean, default False
+		Whether or not to include path.
 
 	Returns
 	-------
-		Return prefix.
+		Return prefix, include_path or not.
 	"""
 	#check_file_exist(file_in) #check outside, to escape file not exist but still want the prefix
 	file_in = abs_path(file_in).split(split_symbol)
 	file_in = split_symbol.join(file_in[0:len(file_in)-times])
-	if include_path:return file_in
-	return os.path.basename(file_in)
+	return include_path and file_in or os.path.basename(file_in)
 
-def get_seqfile_prefix(seqin:str=None):
+def get_seqfile_prefix(seq_in:str=None):
 	"""
 	Get prefix of a sequence file.
 	e.g. file is someting_1.fastq.gz, return something.
 
 	Parameter
 	---------
-	seqin : str
-		Input FASTQ/FASTA format file.
+	seq_in : str
+		Input file.
 
 	Return
 	------
@@ -109,21 +106,21 @@ def get_seqfile_prefix(seqin:str=None):
 		Return a string indicate as the prefix of seqfile.
 	"""
 
-	seqin = os.path.basename(seqin)
-	return re.sub('.\d.fastq.gz|.\d.fq.gz|.\d.fastq|.\d.fq|.\d.fa.gz|.\d.fasta.gz|.\d.fa|.\d.fasta', '', seqin)
+	seq_in = os.path.basename(seq_in)
+	return re.sub('.\d.fastq.gz|.\d.fq.gz|.\d.fastq|.\d.fq|.\d.fa.gz|.fasta.gz|.fa|.fasta', '', seq_in)
 
 # Deprecated, to add times parameter
 #	for i in range(times):
 #		if include_path:return os.path.splitext(f)[0]
 #		return os.path.splitext(os.path.basename(f))[0]
 
-def get_file_path(*files):
+def get_file_path(*files_in):
 	"""
 	Get absolute path of input and return.
 
 	Parameters
 	----------
-	*files : str
+	files_in : str
 		Input file (s)
 
 	Return
@@ -131,18 +128,16 @@ def get_file_path(*files):
 	str
 		Absolute path (s) of your input file (s).
 	"""
-	final_paths = [os.path.dirname(abs_path(f)) for f in files]
+	final_paths = [os.path.dirname(abs_path(fl)) for fl in files_in]
+	return len(final_paths) == 1 and final_path[0] or final_paths
 
-	if len(final_paths) == 1:return final_paths[0]
-	return final_paths
-
-def perfect_open(file_in:str):
+def perfect_open(file_in:str=None):
 	"""
 	Make a perfect open for file
 
 	Parameters
 	----------
-	file_in : str
+	filein : str
 		input file to open
 
 	Returns
@@ -150,13 +145,9 @@ def perfect_open(file_in:str):
 	str
 		Return file handle (s)
 	"""
-	#final_files = []
-	#for f in file_in:
-		#final_files.append(gzip.open(f, 'rt')) if '.gz' in f else final_files.append(open(f, 'r'))
-	if '.gz' in file_in:return gzip.open(file_in, 'rt')
-	return open(file_in, 'r')
+	return '.gz' in filein and gzip.open(filein, 'rt') or open(filein, 'r')
 
-def close_file(*file_handle):
+def close_file(*file_handles):
 	"""
 	Close file handles.
 
@@ -169,10 +160,10 @@ def close_file(*file_handle):
 	-------
 		Close all file handles.
 	"""
-	for fh in file_handle:
+	for fh in file_handles:
 		fh.close()
 
-def find_files(Dir, suffix='fa'):
+def find_files(dr:str=None, suffix='fa'):
 	"""
 	Find files with suffix.
 
@@ -188,4 +179,4 @@ def find_files(Dir, suffix='fa'):
 	list
 		A list of found files with full path.
 	"""
-	return [Dir+'/'+f for f in os.listdir(Dir) if f.endswith(suffix)]
+	return [dr+'/'+fl for fl in os.listdir(Dir) if fl.endswith(suffix)]

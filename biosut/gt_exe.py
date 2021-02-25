@@ -4,10 +4,12 @@ The :mod:`biosut.gt_exe` includes functions relate to command execution.
 
 # Author: Jie Li (mm.jlli6t@gmail.com)
 # License: GNU v3.0
+# Copyrigth: 2015 -
 
 import os
 import sys
 import subprocess as sp
+from loguru import logger
 
 def is_executable(*prog):
 	"""
@@ -26,7 +28,7 @@ def is_executable(*prog):
 		code = sp.run(['which', p], stdout=sp.PIPE, stderr=sp.STDOUT).returncode
 
 		if code:
-			logger.error(f'Program * {p} * is not found')
+			logger.error('Program * {p} * is not found')
 			sys.exit()
 
 def exe_cmd(cmd, shell:bool=True):
@@ -48,5 +50,6 @@ def exe_cmd(cmd, shell:bool=True):
 	proc = sp.Popen(cmd, shell=shell, stdout=sp.PIPE, stderr=sp.PIPE)
 	out, err = proc.communicate()
 	if proc.returncode != 0:
-		sys.exit(f'Error encountered while executing:{cmd}\nError message:{err}'
+		logger.error('Error encountered while executing:{cmd}\nError message:{err}')
+		sys.exit()
 	return out, err

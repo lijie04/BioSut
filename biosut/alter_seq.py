@@ -4,6 +4,7 @@ The :mod:`biosut.alter_seq` includes utilities to operate sequence files.
 
 # Author: Jie Li <mm.jlli6t@gmail.com>
 # License: GNU v3.0
+# Copyrigth: 2015 -
 
 from re import findall
 import gzip
@@ -229,17 +230,21 @@ def trim_headn(inseq:str=None, outseq:str=None, outqual:bool=False):
 	"""
 
 	def remove_first_N(string):
-		while string[0] in 'Ns':
+		while string[0] in 'Nn':
 			string = string[1:]
 		return string
 
-	if not inseq:sys.exit('have to input an inseq file.')
-	if not outseq:sys.exit('have to name an outseq file.')
+	if not inseq:
+		logger.info('Have to specify an seq file for trim_headn.')
+		sys.exit()
+	if not outseq:
+		logger.info('Have to specify an seq file for trim_headn.')
+		sys.exit()
 
 	fh = perfect_open(inseq)
 	oh = '.gz' in outseq and gzip.open(outseq, 'wb') or open(outseq, 'w')
 	for t, seq, _ in io_seq.iterator(fh):
 		seq = remove_first_N(seq)
-		line = outqual and f'@{t}\n{seq}\n+\n{_}\n' or f'>{t}\n{seq}\n'
-		oh.write(line)
+		line = outqual and f'@{t}\n{seq}\n+\n{_[len(_)-len(seq):]}\n' or f'>{t}\n{seq}\n'
+		oh.write('.gz' in outseq and line.encode() or line)
 	close_file(fh, oh)
