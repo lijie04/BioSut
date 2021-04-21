@@ -180,3 +180,48 @@ def find_files(dr:str=None, suffix='fa'):
 		A list of found files with full path.
 	"""
 	return [dr+'/'+fl for fl in os.listdir(Dir) if fl.endswith(suffix)]
+
+def parse_json(json_in):
+	"""
+	Parse json file.
+
+	parameters
+	----------
+	json_in : str
+		Input json format file.
+
+	Returns
+	-------
+		Return a dataframe with columns names as None.
+	"""
+	import json
+	with open(json_in) as fp:
+	#	out.write('Head line.\n')
+		json_file = json.load(fp)
+		out_df = pd.DataFrame(index=None, columns=None)
+		n0 = json_file['name']
+		for cld1 in json_file['children']:
+			n1 = cld1['name']
+			for cld2 in cld1['children']:
+				n2 = cld2['name']
+				for cld3 in cld2['children']:
+					n3 = cld3['name'] ## "ko01000" is strange. what this for?
+					if 'children' not in cld3:
+						n4 = ''
+						#out.write('%s\t%s\t%s\t%s\t%s\n' %(n0, n1, n2, n3, n4))
+						#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\n')
+						out_df.append(pd.DataFrame([n0, n1, n2, n3]).T)
+					else:
+	#					print(cld3)
+						for cld4 in cld3['children']:
+							n4 = cld4['name']
+							if 'children' not in cld4:
+								n5 = ''
+								#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n')
+								out_df.append(pd.DataFrame([n0, n1, n2, n3, n4]).T)
+							else:
+								for cld5 in cld4['children']:
+									n5 = cld5['name']
+									#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n')
+									out_df.append(pd.DataFrame([n0, n1, n2, n3, n4, n5]).T)
+	return out_df
