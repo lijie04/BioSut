@@ -198,7 +198,7 @@ def parse_json(json_in):
 	with open(json_in) as fp:
 	#	out.write('Head line.\n')
 		json_file = json.load(fp)
-		#out_df = pd.DataFrame(index=None, columns=None)
+	#	out_df = pd.DataFrame(index=None, columns=None)
 		out_st_df = ""
 		n0 = json_file['name']
 		for cld1 in json_file['children']:
