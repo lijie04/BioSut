@@ -9,10 +9,10 @@ setup(
 	version = Version(),
 	url='https://github.com/jlli6t/biosut', # optional
 
-	author = 'M.M Jie Li',
-	author_email = 'mm.jlli6t@gmail.com',
-	maintainer = 'M.M Jie Li',
-	maintainer_email = 'mm.jlli6t@gmail.com',
+	author = 'Jie Li',
+	author_email = 'jlli6t@gmail.com',
+	maintainer = 'Jie Li',
+	maintainer_email = 'jlli6t@gmail.com',
 
 	classifiers = [
 				'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',

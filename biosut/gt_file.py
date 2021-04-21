@@ -192,13 +192,14 @@ def parse_json(json_in):
 
 	Returns
 	-------
-		Return a dataframe with columns names as None.
+		Return a string but formatted like dataframe.
 	"""
 	import json
 	with open(json_in) as fp:
 	#	out.write('Head line.\n')
 		json_file = json.load(fp)
-		out_df = pd.DataFrame(index=None, columns=None)
+		#out_df = pd.DataFrame(index=None, columns=None)
+		out_st_df = ""
 		n0 = json_file['name']
 		for cld1 in json_file['children']:
 			n1 = cld1['name']
@@ -210,7 +211,8 @@ def parse_json(json_in):
 						n4 = ''
 						#out.write('%s\t%s\t%s\t%s\t%s\n' %(n0, n1, n2, n3, n4))
 						#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\n')
-						out_df.append(pd.DataFrame([n0, n1, n2, n3]).T)
+						#out_df.append(pd.DataFrame([n0, n1, n2, n3]).T)
+						out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\n"
 					else:
 	#					print(cld3)
 						for cld4 in cld3['children']:
@@ -218,10 +220,12 @@ def parse_json(json_in):
 							if 'children' not in cld4:
 								n5 = ''
 								#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n')
-								out_df.append(pd.DataFrame([n0, n1, n2, n3, n4]).T)
+								#out_df.append(pd.DataFrame([n0, n1, n2, n3, n4]).T)
+								out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n"
 							else:
 								for cld5 in cld4['children']:
 									n5 = cld5['name']
 									#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n')
-									out_df.append(pd.DataFrame([n0, n1, n2, n3, n4, n5]).T)
-	return out_df
+									#out_df.append(pd.DataFrame([n0, n1, n2, n3, n4, n5]).T)
+									out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n"
+	return out_st_df
