@@ -166,12 +166,13 @@ def evaluate_genome(genome, len_cutoff:int=500):
 		"""
 
 	fh = perfect_open(genome)
-	gap, gc, contig_num, contig_len = 0, 0, 0, []
+	n, gap, gc, contig_num, contig_len = 0, 0, 0, 0, []
 	for t, seq, _ in iterator(fh):
 		if len(seq) < len_cutoff:continue
 		contig_num += 1
 		contig_len.append(len(seq))
 		gap += len(findall('N+', seq))
+		n += seq.count("N")
 		gc += string_gc(seq)
 
 	genome_size = sum(contig_len)
@@ -185,4 +186,4 @@ def evaluate_genome(genome, len_cutoff:int=500):
 			n50 = i
 			break
 	return genome_size, contig_num, n50, max(contig_len), \
-			min(contig_len), gap, gc
+			min(contig_len), n, gap, gc
