@@ -11,7 +11,7 @@ import sys
 import gzip
 import re
 from .gt_path import abs_path
-
+from loguru import logger
 
 ## deprecated, redundanted.
 def _check(f):
@@ -44,7 +44,7 @@ def check_file_exist(*files_in, check_empty:bool=False):
 	"""
 	for	fl in files_in:
 		if not os.path.isfile(fl):
-			logger.error('{fl} is not exist.')
+			logger.error(f"{fl} is not exist.")
 			sys.exit()
 		if check_empty:check_file_empty(fl)
 
@@ -63,7 +63,7 @@ def check_file_empty(*files_in):
 	"""
 	for fl in files_in:
 		if not os.path.getsize(fl):
-			logger.error('{fl} is empty.')
+			logger.error(f"{fl} is empty.")
 			sys.exit()
 
 def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include_path:bool=False):
@@ -76,7 +76,7 @@ def get_file_prefix(file_in:str=None, times:int=1, split_symbol:str='.', include
 		Input file, relative path or abusolute path.
 	times : int, default 1.
 		How many times supposed to chop str
-    split_symbol : str, default '.'
+    split_symbol : str, default "."
         symbol to use to split file names
 	include_path : boolean, default False
 		Whether or not to include path.
@@ -107,7 +107,7 @@ def get_seqfile_prefix(seq_in:str=None):
 	"""
 
 	seq_in = os.path.basename(seq_in)
-	return re.sub('.\d.fastq.gz|.\d.fq.gz|.\d.fastq|.\d.fq|.\d.fa.gz|.fasta.gz|.fa|.fasta', '', seq_in)
+	return re.sub(".\d.fastq.gz|.\d.fq.gz|.\d.fastq|.\d.fq|.\d.fa.gz|.fasta.gz|.fa|.fasta", "", seq_in)
 
 # Deprecated, to add times parameter
 #	for i in range(times):
@@ -145,7 +145,7 @@ def perfect_open(file_in:str=None):
 	str
 		Return file handle (s)
 	"""
-	return '.gz' in filein and gzip.open(filein, 'rt') or open(filein, 'r')
+	return ".gz" in filein and gzip.open(filein, "rt") or open(filein, "r")
 
 def close_file(*file_handles):
 	"""
@@ -171,7 +171,7 @@ def find_files(dr:str=None, suffix='fa'):
 	----------
 	Dir : str
 		Input directory to find files
-	suffix : str, default 'fa'
+	suffix : str, default "fa"
 		suffix of files
 
 	Returns
@@ -179,7 +179,7 @@ def find_files(dr:str=None, suffix='fa'):
 	list
 		A list of found files with full path.
 	"""
-	return [dr+'/'+fl for fl in os.listdir(Dir) if fl.endswith(suffix)]
+	return [dr+"/"+fl for fl in os.listdir(Dir) if fl.endswith(suffix)]
 
 def parse_json(json_in):
 	"""
@@ -198,33 +198,33 @@ def parse_json(json_in):
 	with open(json_in) as fp:
 	#	out.write('Head line.\n')
 		json_file = json.load(fp)
+	#	out_df = pd.DataFrame(index=None, columns=None)
 		out_st_df = ""
-		n0 = json_file['name']
-		for cld1 in json_file['children']:
+		n0 = json_file["name"]
+		for cld1 in json_file["children"]:
 			n1 = cld1['name']
-			for cld2 in cld1['children']:
-				n2 = cld2['name']
-				for cld3 in cld2['children']:
-					n3 = cld3['name'] ## "ko01000" is strange. what this for?
-					if 'children' not in cld3:
-						n4 = ''
+			for cld2 in cld1["children"]:
+				n2 = cld2["name"]
+				for cld3 in cld2["children"]:
+					n3 = cld3["name"] ## "ko01000" is strange. what this for?
+					if "children" not in cld3:
 						#out.write('%s\t%s\t%s\t%s\t%s\n' %(n0, n1, n2, n3, n4))
 						#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\n')
 						#out_df.append(pd.DataFrame([n0, n1, n2, n3]).T)
 						out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\n"
 					else:
 	#					print(cld3)
-						for cld4 in cld3['children']:
-							n4 = cld4['name']
-							if 'children' not in cld4:
-								n5 = ''
-								#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n')
-								#out_df.append(pd.DataFrame([n0, n1, n2, n3, n4]).T)
+						for cld4 in cld3["children"]:
+							n4 = cld4["name"]
+							if "children" not in cld4:
 								out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n"
 							else:
-								for cld5 in cld4['children']:
-									n5 = cld5['name']
-									#out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n')
-									#out_df.append(pd.DataFrame([n0, n1, n2, n3, n4, n5]).T)
-									out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n"
+								for cld5 in cld4["children"]:
+									n5 = cld5["name"]
+									if "children" not in cld5:
+										out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n"
+									else:
+										for cld6 in cld5["children"]
+											n6 = cld6["name"]
+											out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\t{n6}\n"
 	return out_st_df
