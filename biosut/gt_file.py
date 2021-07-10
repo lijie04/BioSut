@@ -224,7 +224,7 @@ def parse_json(json_in):
 									if "children" not in cld5:
 										out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n"
 									else:
-										for cld6 in cld5["children"]
+										for cld6 in cld5["children"]:
 											n6 = cld6["name"]
 											out_st_df += f"{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\t{n6}\n"
 	return out_st_df
