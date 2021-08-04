@@ -145,7 +145,7 @@ def perfect_open(file_in:str=None):
 	str
 		Return file handle (s)
 	"""
-	return ".gz" in filein and gzip.open(filein, "rt") or open(filein, "r")
+	return ".gz" in file_in and gzip.open(file_in, "rt") or open(file_in, "r")
 
 def close_file(*file_handles):
 	"""
