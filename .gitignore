@@ -8,12 +8,10 @@
 *.pyc
 /*.egg-info/
 
-# docs
-/docs/
-
 # other files
 /.git/
 /test/
 Logger.py
 .DS_Store
 test.py
+/venv
