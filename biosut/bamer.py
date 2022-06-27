@@ -13,7 +13,6 @@ from re import findall
 from . import biosys as bs
 from . import bioseq
 
-
 # TODO: the whole module, try to use pysam instead, for more flexibility.
 def recover_reads(bam, ref, out_prefix, output_bam: bool = True,
                   output_fq: bool = False, **kargs):

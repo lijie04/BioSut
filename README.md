@@ -2,10 +2,10 @@
 [![PyPI](https://shields.io/pypi/v/biosut.svg)](https://pypi.org/project/biosut)
 
 ## Introduction
-[**biosut**](https://github.com/jlli6t/BioSut) is a python package that 
-integrated some biology-related bioinformatics operating modules on sequences, 
-files, directories, mappings, alignments and so on. The biosut is open source 
-and released under the 
+[**biosut**](https://github.com/jlli6t/BioSut) is a python package that
+integrated some biology-related bioinformatics operating modules on sequences,
+files, directories, mappings, alignments and so on. The biosut is open source
+and released under the
 [GNU General Public License (Version 3)](https://pypi.org/project/biosut/).
 
 ## Installation
@@ -35,7 +35,7 @@ There are dependencies in need for some modules, such as bammer:
 [samtools](http://www.htslib.org/)
 
 ## Bugs and questions
-For any bugs or questions please use 
+For any bugs or questions please use
 [Issue](https://github.com/jlli6t/BioSut/issues) portal.
 
 ## Copyright
