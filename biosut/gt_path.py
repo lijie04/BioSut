@@ -170,5 +170,5 @@ def find_db_path(db_v:str):
 		check_path_empty(db)
 		return db
 	else:
-		logger.error('Did not find %s'%db)
+		logger.error(f'Did not find {db_v}')
 		sys.exit()
