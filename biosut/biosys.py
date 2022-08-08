@@ -165,7 +165,7 @@ def find_db(db_v: str):
     if db:
         check_path_exist(db)
         return db
-    logger.error(f'{db} is not found.')
+    logger.error(f'{db_v} is not found.')
     sys.exit()
 
 
