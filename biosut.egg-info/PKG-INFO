@@ -1,12 +1,12 @@
 Metadata-Version: 1.2
 Name: biosut
-Version: 2.1.0
+Version: 3.0
 Summary: biology suite for bioinformatics operations.
 Home-page: https://github.com/jlli6t/biosut
-Author: M.M Jie Li
-Author-email: mm.jlli6t@gmail.com
-Maintainer: M.M Jie Li
-Maintainer-email: mm.jlli6t@gmail.com
+Author: Jie Li
+Author-email: jlli6t@gmail.com
+Maintainer: Jie Li
+Maintainer-email: jlli6t@gmail.com
 License: UNKNOWN
 Description: UNKNOWN
 Keywords: biology bioinformatics

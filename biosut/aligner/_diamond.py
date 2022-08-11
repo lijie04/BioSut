@@ -2,43 +2,42 @@
 The :mod:`biosut._diamond` integrated diamond related operations.
 """
 
-# Author: Jie Li <mm.jlli6t@gmail.com>
-# License: GNU v3.0
+# Author: Jie Li <jlli6t at gmail.com>
+# License: GPLv3.0
 
 import os
 from os.path import join
-import logging
 import pandas as pd
 from numpy import unique
+from loguru import logger
 
-from biosut.biosys import gt_file, gt_path
+from biosut import biosys
 
-class diamond:
 
-	@classmethod
-	def align(cls, query, d_type, outdir, arg):
+class Aligner:
+    def __init__(self, query, subject, outdir):
+        self.query = query
+        self.subject = subject
+        self.outdir = outdir
 
-		taxid = {'Archaea':'2157', 'Bacteria':'2'} # define tax id.
+    def align(self, query, d_type, outdir, arg):
 
-		# index this db
+        taxid = {'Archaea':'2157', 'Bacteria':'2'} # define tax id.
+        # index this db
 		if not os.path.isfile(db + '.dmnd'):
-			cls._index(db)
+            cls._index(db)
 
-		files.check_exist(query, db+'.info.gz', check_empty=True)
-		taxonlist = taxid[arg.tax] if arg.tax else None
-		cls._align(query, db, outfile, taxonlist=taxid[arg.tax])
+        biosys.check_file_exist(query, f'{db}.info.gz', check_empty=True)
+        taxonlist = taxid[arg.tax] if arg.tax else None
+        cls._align(query, db, outfile, taxonlist=taxid[arg.tax])
 
-		aln_filter = cls._filter(outfile, query_cover=qc, subject_cover=sc, evalue=evalue, top=1)
+        aln_filter = cls._filter(outfile, query_cover=qc, subject_cover=sc, evalue=evalue, top=1)
 
-		cls._anno(db+'.info.gz', aln_filter)
+        cls._anno(db+'.info.gz', aln_filter)
 
-
-	def index_db(db, taxid:bool=True):
-		"""
-		Index the referece database with diamond.
-
-		Parameter
-		---------
+	def index_diamond_db(self, db, taxid:bool=True):
+		"""Index the reference with diamond.
+        :params
 		db : str
 			Input fasta to index as database.
 		"""
@@ -51,7 +50,7 @@ class diamond:
 		path.exe_proc(cmd, shell=False)
 		logger.info("*INDEXING* is *FINISHED*")
 
-	def _align(query, db, aln_out, cpus=10, taxonlist=None):
+	def _align(self, query, db, aln_out, cpus=10, taxonlist=None):
 		"""
 		Performing alignment with diamond.
 
@@ -96,7 +95,7 @@ class diamond:
 		logger.info("*ALIGNING* is *FINISHED*.")
 
 
-	def _filter(aln, query_cover=50, subject_cover=50, evalue=1e-10, top=1):
+	def _filter(self, aln, query_cover=50, subject_cover=50, evalue=1e-10, top=1):
 		"""
 		Filter alignments according to the identity, evalue, query_cover and subject_cover.
 
@@ -150,7 +149,7 @@ class diamond:
 		logger.info("*FILTERING* alignments is *FINISHED*.")
 		return aln_filter
 
-	def _anno(db_info, aln):
+	def _anno(self, db_info, aln):
 		"""
 		Anno alignments.
 
@@ -173,9 +172,9 @@ class diamond:
 		while True:
 			try:
 				chunk = db_info_reader.get_chunk(10000000)
-			#	print(chunk.index)
-			#	print(chunk.columns)
-			#	print([i for i in chunk.index if i in list(aln.sseqid)])
+			# print(chunk.index)
+			# print(chunk.columns)
+			# print([i for i in chunk.index if i in list(aln.sseqid)])
 				chunk = chunk.loc[[i for i in chunk.index if i in aligned_genes]]
 				db_info = db_info.append(chunk)
 			except StopIteration:
@@ -194,13 +193,10 @@ class diamond:
 		aln_anno_simple.to_csv(aln_file + '.anno.xls.simple.xls', sep="\t")
 		logger.info("*ANNOTATING* is *FINISHED*.")
 
-	def _get_tax_files():
-		"""
-		Find prot.accession2taxid.gz, nodes.dmp and names.dmp for diamond makedb.
-		"""
-
-		db = os.environ.get('DIAMOND_MAKEDB_PATH')
-		path.check_exist(db, check_empty=True)
+	def _get_tax_files(self):
+		"""prot.accession2taxid.gz, nodes.dmp and names.dmp to index db."""
+		db = os.environ.get("DIAMOND_MAKEDB_PATH")
+        path.check_exist(db, check_empty=True)
 		if db:
 			taxonmap = db+'/prot.accession2taxid.gz'
 			taxonnodes = db+'/taxdmp/nodes.dmp'
@@ -209,8 +205,6 @@ class diamond:
 			return [taxonmap, taxonnodes, taxonnames]
 		else:
 			return None
-
-
 
 if __name__ == '__main__':
 	import sys
@@ -223,9 +217,6 @@ if __name__ == '__main__':
 	taxon = sys.argv[4]
 	d_type= sys.argv[5]
 	cpus = 10
-#logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(module)s - %(levelname)s - %(message)s')
-	logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-	logger = logging.getLogger(__name__)
 
 	if not os.path.isfile(ref + '.dmnd'):
 		diamond.index(ref)

@@ -1,0 +1,6 @@
+pandas~=1.2.3
+numpy~=1.19.0
+biosut~=2.1.1
+loguru~=0.5.1
+pysam~=0.18.0
+setuptools~=41.2.0
