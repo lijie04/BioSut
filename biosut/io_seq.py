@@ -2,7 +2,7 @@
 The :mod:`biosut.io_seq` includes utilities to operate sequence files.
 """
 
-# Author: Jie Li <mm.jlli6t@gmail.com>
+# Author: Jie Li <jlli6t@gmail.com>
 # License: GNU v3.0
 
 import oss

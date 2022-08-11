@@ -2,7 +2,7 @@
 The :mod:`biosut.gt_file` includes functions relate to file operations.
 """
 
-# Author: Jie Li (mm.jlli6t@gmail.com)
+# Author: Jie Li (jlli6t@gmail.com)
 # License: GNU v3.0
 
 import os

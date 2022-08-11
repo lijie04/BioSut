@@ -2,7 +2,7 @@
 The :mod:`biosut.alter_bam` includes some bam operation.
 """
 
-# Author: Jie Li <mm.jlli6t@gmail.com>
+# Author: Jie Li <jlli6t@gmail.com>
 # License: GNU v3.0
 
 from re import findall

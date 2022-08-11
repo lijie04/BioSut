@@ -2,7 +2,7 @@
 The :mod:`biosut.gt_exe` includes functions relate to command execution.
 """
 
-# Author: Jie Li (mm.jlli6t@gmail.com)
+# Author: Jie Li (jlli6t@gmail.com)
 # License: GNU v3.0
 
 import os
