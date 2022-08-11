@@ -14,6 +14,140 @@ from . import biosys as bs
 from . import bioseq
 
 # TODO: the whole module, try to use pysam instead, for more flexibility.
+
+def sam2bam(sam, sort: bool = True, overlay: bool = False):
+    """
+    Convert sam to bam file and/or sort it.
+    Args:
+        sam: FILE
+            input sam file.
+        sort: bool, default `True`
+            set to sort the bam file.
+        overlay: bool, default `False`
+            set to overlay existed result, if there is any.
+    Returns:
+        Bam or sorted bam file.
+    """
+    prefix = bs.remove_suffix(sam, include_path=True)
+    cmd_srt = f'samtools view -@ 10 -bS {sam} |' \
+              f'samtools sort -@ 10 - > {prefix}.srt.bam'
+    cmd_bam = f'samtools view -@ 10 -bS {sam} -o {prefix}.bam'
+
+    if overlay:
+        bs.exe_cmd(cmd_srt, shell=True)
+        return f'{prefix}.srt.bam'
+
+    if sort:
+        if not os.path.isfile(f'{prefix}.srt.bam'):
+            bs.exe_cmd(cmd_srt, shell=True)
+        return f'{prefix}.srt.bam'
+    else:
+        if not os.path.isfile(f'{prefix}.bam'):
+            bs.exe_cmd(cmd_bam, shell=True)
+        return f'{prefix}.bam'
+
+
+def is_sorted(bam):
+    """
+    Check whether a bam is sorted.
+    Args:
+        bam: FILE
+            input bam file.
+
+    Returns:
+        Bool value
+    """
+    cmd = f'samtools view -H {bam} | head -n 1'
+    out, err = bs.exe_cmd(cmd)
+    if 'unsorted' in out.decode(): return False
+    return True
+
+
+# code relies on samtools, so please add samtools in.
+def sort_bam(bam, overlay: bool = False):
+    """
+    Sort input bam file.
+    Args:
+        bam: FILE
+            input bam file.
+        overlay: bool, default `False`.
+            set to overlay existed result.
+
+    Returns:
+        sorted bam file.
+    """
+    prefix = bs.remove_suffix(bam)
+    cmd = f'samtools sort -@ 10 {bam} -o {prefix}.srt.bam'
+    if overlay or not os.path.isfile(f'{prefix}.srt.bam'):
+        bs.exe_cmd(cmd, shell=True)
+        # return f'{prefix}.srt.bam'
+    return f'{prefix}.srt.bam'
+
+
+def index_bam(bam, overlay: bool = False):
+    """
+    Index bam file. Will sort the bam first if it is unsorted.
+    Args:
+        bam: = FILE
+            input bam file.
+        overlay: boolean, default `False`
+            set to overlay existed bam file.
+    Returns:
+        indexed bam file.
+    """
+    def _index_bam(bam_):
+        cmd = f'samtools index -b -@ 10 {bam_}'
+        bs.exe_cmd(cmd, shell=True)
+
+    if overlay or not os.path.isfile(f'{bam}.bai'):
+        if is_sorted(bam):
+            _index_bam(bam)
+            return bam
+        srt_bam = sort_bam(bam, overlay=True)
+        _index_bam(srt_bam)
+        return srt_bam
+
+    if os.path.isfile(f'{bam}.bai'): return bam
+
+#    try:
+#        _index_bam(bam)
+#        return bam
+#    except FileNotFoundError:  # samtools raises this error when bam is unsort.
+#        srt_bam = sort_bam(bam)
+#        _index_bam(srt_bam)
+#        return srt_bam
+
+def index_bam_using_pysam(bam, overlay: bool = False):
+    """
+    Index bam file. If the input bam file is not sorted, will sort it first.
+    Args:
+        bam: FILE
+            input bam file.
+        overlay: boolean, default `False`
+            set to overlay existed bam file.
+
+    Returns:
+        indexed bam file.
+    """
+
+    if overlay:
+        if is_sorted(bam):
+            ps.index(bam)
+            return bam
+        srt_bam = sort_bam(bam, overlay=True)
+        ps.index(srt_bam)
+        return srt_bam
+
+    if os.path.isfile(f'{bam}.bai'): return bam
+
+    try:
+        ps.index(bam)
+        return bam
+    except ps.utils.SamtoolsError:
+        srt_bam = sort_bam(bam)
+        ps.index(srt_bam)
+        return srt_bam
+
 def recover_reads(bam, ref, out_prefix, output_bam: bool = True,
                   output_fq: bool = False, **kargs):
     """Recover reads from bam that mapped to specific reference.
@@ -128,138 +262,3 @@ def recover_reads(bam, ref, out_prefix, output_bam: bool = True,
             for flg in stat:
                 stat_out.write(f'{flg}\t{stat[flg][0]}\t{stat[flg][1]}\n')
         return stat
-
-
-def sam2bam(sam, sort: bool = True, overlay: bool = False):
-    """
-    Convert sam to bam file and/or sort it.
-    Args:
-        sam: FILE
-            input sam file.
-        sort: bool, default `True`
-            set to sort the bam file.
-        overlay: bool, default `False`
-            set to overlay existed result, if there is any.
-    Returns:
-        Bam or sorted bam file.
-    """
-    prefix = bs.remove_suffix(sam, include_path=True)
-    cmd_srt = f'samtools view -@ 10 -bS {sam} |' \
-              f'samtools sort -@ 10 - > {prefix}.srt.bam'
-    cmd_bam = f'samtools view -@ 10 -bS {sam} -o {prefix}.bam'
-
-    if overlay:
-        bs.exe_cmd(cmd_srt, shell=True)
-        return f'{prefix}.srt.bam'
-
-    if sort:
-        if not os.path.isfile(f'{prefix}.srt.bam'):
-            bs.exe_cmd(cmd_srt, shell=True)
-        return f'{prefix}.srt.bam'
-    else:
-        if not os.path.isfile(f'{prefix}.bam'):
-            bs.exe_cmd(cmd_bam, shell=True)
-        return f'{prefix}.bam'
-
-
-def is_sorted(bam):
-    """
-    Check whether a bam is sorted.
-    Args:
-        bam: FILE
-            input bam file.
-
-    Returns:
-        Bool value
-    """
-    cmd = f'samtools view -H {bam} | head -n 1'
-    out, err = bs.exe_cmd(cmd)
-    if 'unsorted' in out.decode(): return False
-    return True
-
-
-# code relies on samtools, so please add samtools in.
-def sort_bam(bam, overlay: bool = False):
-    """
-    Sort input bam file.
-    Args:
-        bam: FILE
-            input bam file.
-        overlay: bool, default `False`.
-            set to overlay existed result.
-
-    Returns:
-        sorted bam file.
-    """
-    prefix = bs.remove_suffix(bam)
-    cmd = f'samtools sort -@ 10 {bam} -o {prefix}.srt.bam'
-    if overlay or not os.path.isfile(f'{prefix}.srt.bam'):
-        bs.exe_cmd(cmd, shell=True)
-        # return f'{prefix}.srt.bam'
-    return f'{prefix}.srt.bam'
-
-
-def index_bam(bam, overlay: bool = False):
-    """
-    Index bam file. Will sort the bam first if it is unsorted.
-    Args:
-        bam: = FILE
-            input bam file.
-        overlay: boolean, default `False`
-            set to overlay existed bam file.
-    Returns:
-        indexed bam file.
-    """
-    def _index_bam(bam_):
-        cmd = f'samtools index -b -@ 10 {bam_}'
-        bs.exe_cmd(cmd, shell=True)
-
-    if overlay or not os.path.isfile(f'{bam}.bai'):
-        if is_sorted(bam):
-            _index_bam(bam)
-            return bam
-        srt_bam = sort_bam(bam, overlay=True)
-        _index_bam(srt_bam)
-        return srt_bam
-
-    if os.path.isfile(f'{bam}.bai'): return bam
-
-#    try:
-#        _index_bam(bam)
-#        return bam
-#    except FileNotFoundError:  # samtools raises this error when bam is unsort.
-#        srt_bam = sort_bam(bam)
-#        _index_bam(srt_bam)
-#        return srt_bam
-
-
-def index_bam_using_pysam(bam, overlay: bool = False):
-    """
-    Index bam file. If the input bam file is not sorted, will sort it first.
-    Args:
-        bam: FILE
-            input bam file.
-        overlay: boolean, default `False`
-            set to overlay existed bam file.
-
-    Returns:
-        indexed bam file.
-    """
-
-    if overlay:
-        if is_sorted(bam):
-            ps.index(bam)
-            return bam
-        srt_bam = sort_bam(bam, overlay=True)
-        ps.index(srt_bam)
-        return srt_bam
-
-    if os.path.isfile(f'{bam}.bai'): return bam
-
-    try:
-        ps.index(bam)
-        return bam
-    except ps.utils.SamtoolsError:
-        srt_bam = sort_bam(bam)
-        ps.index(srt_bam)
-        return srt_bam
