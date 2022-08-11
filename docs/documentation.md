@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # biosut
 ## Introduction
 ### History
@@ -54,3 +55,43 @@ MM Team was founded Jun 2020.
 Any issues and suggestions or enquires please use the 
 [issue](https://github.com/jlli6t/BioSut/issues) portal. I will make response
 as fast as I can.
+=======
+## Installation
+
+Install biosut through PyPi:
+```
+pip3 install biosut
+```
+
+## usage
+### Module biosys
+```python3
+from biosut.biosys import files,path
+```
+
+#### files related operations
+For example, check the existance of a file/files and check if it is empty.
+```python3
+f = 'file.txt'
+files.check_exist(f, check_empty=True)
+```
+Get prefix of a file.
+
+```python3
+files.get_prefix(f, include_path=True)
+```
+
+#### path related operations
+For example, make sure a directory exists.
+```python3
+o = './test/a'
+path.sure_exist(o)
+```
+
+or
+```python3
+new.o = path.sure_exist(o)
+```
+
+
+>>>>>>> cd8f5485cb8239645bb760ffe8dc9e2c8be1d37c
