@@ -37,7 +37,8 @@ def iterator(fh, chop_comment: bool = False):
                     last = l[:-1]  # save this line
                     break
         if not last: break
-        # name, seqs, last = last[1:], [], None  # keep comment of seq id. Jie
+        # name, seqs, last = last[1:], [], None  
+        # keep comment of seq id. Jie
         name = last[1:].partition(' ')[0] if chop_comment else last[1:]
         seqs, last = [], None
         for l in fh:  # read the sequence
@@ -74,6 +75,7 @@ def fq2fa(infq, out_fa: str = 'test'):
     Results:
         Generate a FASTA file.
     """
+
     fh = open_file(infq)
     with open(out_fa, 'w') as outf:
         for t, seq, _ in iterator(fh):
@@ -101,6 +103,7 @@ def seq2dict(inseq: str, min_len: int = 0, qual: bool = False,
     # (DEPRECATED) return_gc: bool = False,
     # (DEPRECATED) return_len: bool = False,
     # (DEPRECATED) return_qual: bool = False
+
     """
     Read sequences file into dict with sequence id as key and specified value.
     Args:
@@ -128,6 +131,7 @@ def seq2dict(inseq: str, min_len: int = 0, qual: bool = False,
     Returns:
         a dict, sequence id as key.
     """
+
     seq_dict = {}
     fh = open_file(inseq)
     for t, seq, _ in iterator(fh):
@@ -152,6 +156,7 @@ def seq2dict(inseq: str, min_len: int = 0, qual: bool = False,
         # if return_len: seq_dict[t].append(len(seq))
         # if return_qual: seq_dict[t].append(_)
         # seq_dict[t] = ','.join(seq_dict[t])  # can not join as int values.
+
     fh.close()
     return seq_dict
 

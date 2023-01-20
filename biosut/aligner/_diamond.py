@@ -2,8 +2,12 @@
 The :mod:`biosut._diamond` integrated diamond related operations.
 """
 
-# Author: Jie Li <jlli6t at gmail.com>
-# License: GPLv3.0
+__author__ = 'Jie Li'
+__copyright__ = 'Copyright 2023'
+__credits__ = 'Jie Li'
+__license__ = 'GPLv3.0'
+__maintainer__ = 'Jie Li'
+__email__ = 'jlli6t near gmail.com'
 
 import os
 from os.path import join
@@ -15,29 +19,28 @@ from biosut import biosys
 
 
 class Aligner:
-    def __init__(self, query, subject, outdir):
-        self.query = query
-        self.subject = subject
-        self.outdir = outdir
+	def __init__(self, query, subject, outdir):
+		self.query = query
+		self.subject = subject
+		self.outdir = outdir
 
-    def align(self, query, d_type, outdir, arg):
+	def align(self, query, d_type, outdir, arg):
 
-        taxid = {'Archaea':'2157', 'Bacteria':'2'} # define tax id.
-        # index this db
-		if not os.path.isfile(db + '.dmnd'):
-            cls._index(db)
+		taxid = {'Archaea':'2157', 'Bacteria':'2'} # define tax id
+		if not os.path.isfile(db + '.dmnd'): # check existance of dimaond index, if not, create index
+			cls._index_diamond_db(db)
 
-        biosys.check_file_exist(query, f'{db}.info.gz', check_empty=True)
-        taxonlist = taxid[arg.tax] if arg.tax else None
-        cls._align(query, db, outfile, taxonlist=taxid[arg.tax])
+		biosys.check_file_exist(query, f'{db}.info.gz', check_empty=True)
+		taxonlist = taxid[arg.tax] if arg.tax else None
+		cls._align(query, db, outfile, taxonlist=taxid[arg.tax])
 
-        aln_filter = cls._filter(outfile, query_cover=qc, subject_cover=sc, evalue=evalue, top=1)
+		aln_filter = cls._filter(outfile, query_cover=qc, subject_cover=sc, evalue=evalue, top=1)
 
-        cls._anno(db+'.info.gz', aln_filter)
+		cls._anno(db+'.info.gz', aln_filter)
 
 	def index_diamond_db(self, db, taxid:bool=True):
 		"""Index the reference with diamond.
-        :params
+		:params
 		db : str
 			Input fasta to index as database.
 		"""
@@ -196,7 +199,7 @@ class Aligner:
 	def _get_tax_files(self):
 		"""prot.accession2taxid.gz, nodes.dmp and names.dmp to index db."""
 		db = os.environ.get("DIAMOND_MAKEDB_PATH")
-        path.check_exist(db, check_empty=True)
+		path.check_exist(db, check_empty=True)
 		if db:
 			taxonmap = db+'/prot.accession2taxid.gz'
 			taxonnodes = db+'/taxdmp/nodes.dmp'

@@ -1,5 +1,5 @@
 """
-The :mod:`biosut.gt_exe` includes functions relate to command execution.
+The :mod:`biosut.biosys` includes system functions.
 """
 
 # Author: Jie Li (jlli6t at gmail.com)
