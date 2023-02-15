@@ -1,10 +1,10 @@
 """
-The :mod:`biosut.io_seq` includes utilities to operate sequence files.
+The :mod:`biosut.bioseq` includes utilities to operate sequence files.
 """
 
 # Author: Jie Li <jlli6t at gmail.com>
 # License: GPLv3.0
-# Copyright: 2018-2021
+# Copyright: 2018-
 
 import os
 import sys
@@ -118,7 +118,7 @@ def seq2dict(inseq: str, min_len: int = 0, qual: bool = False,
             what to return. [seq, gc, len, qual].
             If set both seq and qual, then 'seq,qual' will be the value of dict.
 
-        # below codes are DEPRECATED.
+        # below functions are DEPRECATED.
         # (DEPRECATED) return_seq := boolean, default `False`.
         #    set to return sequence as value of dict.
         # (DEPRECATED) return_gc := boolean, default `False`.

@@ -31,8 +31,7 @@ def is_executable(*prog):
             logger.error(f'Program * {p} * is system path.')
             sys.exit()
 
-
-def exe_cmd(cmd, shell: bool = True):
+def execute_cmd(cmd, shell: bool = True):
     """
     Executing your command.
     Args:
@@ -52,26 +51,30 @@ def exe_cmd(cmd, shell: bool = True):
         sys.exit()
     return out, err
 
-
-def check_path_exist(*paths_in, check_empty: bool = False):
+def check_path(*paths_in, check_empty: bool = False, mkdir: bool = False):
     """
-    Check if path exists, exits if path does not exist.
+    Check if path exists, exits if path does not exist. When `mkdir=True`, the path will be created if not exists.
     Args:
         *paths_in: str (s)
             path (s) that will be checked.
         check_empty: boolean, default `True`
-            set to check if the path is empty.
+            set to check if the path is empty. Exit if path is empty.
+        mkdir: boolean, default `False`
+            set to create the path if not exists.
 
     Returns:
-        return full path (s).
+        return full path(s).
+
+    Example:
+        >>> from biosut.biosys import sure_path_exist
+        >>> check_path('/a/b/c', check_empty=True, mkdir=False)
     """
     def check_path_empty(dir_in):
         """
         Check if direcotry is empty.
         Args:
             dir_in: str
-                direcotry to check.
-
+                directory to check.
         Results:
             exit and report error message if input directory is empty.
         """
@@ -83,44 +86,22 @@ def check_path_exist(*paths_in, check_empty: bool = False):
     for pth in paths_in:
         pth = os.path.abspath(pth)
         final_paths.append(pth)
-        if not os.path.exists(pth):
-            logger.error(f'Path * {pth} * does not exists.')
-            sys.exit()
-        if check_empty:
-            check_path_empty(pth)
-    if len(final_paths) == 1: return final_paths[0]
-    return final_paths
-
-
-def sure_path_exist(*paths_in):
-    """
-    Check if path exists, path will be created if not exists.
-    Args:
-        *paths_in: str
-            path (s) that will be checked and created if not exists.
-
-    Results:
-        path (s) that exist will be created (and return).
-
-    Example:
-        >>> from biosut.biosys import sure_path_exist
-        >>> sure_path_exist('/a/b/c')
-    """
-    final_paths = []
-    for pth in paths_in:
-        pth = os.path.abspath(pth)
-        final_paths.append(pth)
-        if not os.path.exists(pth):
-            try:
-                os.makedirs(pth)
-            except OSError as e:
-                logger.error(f'Error encountered: {e},'
-                             f'Path * {pth} * is not creatable.')
+        if os.path.exists(pth):
+            if check_empty:
+                check_path_empty(pth)
+        else:
+            if mkdir:
+                try:
+                    os.makedirs(pth)
+                except OSError as e:
+                    logger.error(f'Error encountered: {e}, path {pth} cannot be created.')
+                    sys.exit()
+            else:
+                logger.error(f'path {pth} does not exists and you didnot set mkdir=True to create it.')
                 sys.exit()
-    if len(final_paths) == 1: return final_paths[0]
-    return final_paths
+    return len(final_paths) == 1 and final_paths[0] or final_paths
 
-
+# TODO
 def real_path(*paths):
     """
     Get real path, soft links will be converted to solid destination path.
@@ -134,16 +115,13 @@ def real_path(*paths):
         >>> from biosut.biosys import real_path
         >>> a = './../bucket'
         >>> b = '/usr/bin/python'
-        >>> c = 'aaa -> ../../aaa' # this is a link
+        >>> c = 'aaa -> ../../aaa' # this is a soft link
         >>> result = real_path(a, b, c)
         >>> print(result)
         ['/path/to/../bucket', '/usr/bin/python', '/path/to/../../aaa']
     """
     final_paths = [os.path.realpath(pth) for pth in paths]
-
-    if len(final_paths) == 1: return final_paths[0]
-    return final_paths
-
+    return len(final_paths) == 1 and final_paths[0] or final_paths
 
 def find_db(db_v: str):
     """
@@ -163,13 +141,12 @@ def find_db(db_v: str):
     """
     db = os.environ.get(db_v)
     if db:
-        check_path_exist(db)
+        check_path(db, check_empty=True)
         return db
-    logger.error(f'{db_v} is not found.')
+    logger.error(f'{db_v} could not be found.')
     sys.exit()
 
-
-def check_file_exist(*files_in, check_empty: bool = False):
+def check_file(*files_in, check_empty: bool = False):
     """
     Check if file (s) exists, exit if file not exist.
     Args:
@@ -177,7 +154,6 @@ def check_file_exist(*files_in, check_empty: bool = False):
             input file (s) to check.
         check_empty: boolean, default `False`
             set to check if file is empty
-
     Results:
         exit if the file is not exist or emtpy when check_empty=True.
     """
@@ -201,21 +177,20 @@ def check_file_exist(*files_in, check_empty: bool = False):
             sys.exit()
         if check_empty: check_file_empty(fl)
 
-
-def remove_suffix(file_in: str = None, times: int = 1,
-                  split_symbol: str = '.', include_path: bool = True,
-                  seq: bool = False):
+def remove_suffix(file_in: str = None, split_symbol: str = '.', 
+                times: int = 1, include_path: bool = True):
     """
-    Get prefix of file, e.g. file is `test.txt`, then return `test`.
+    Get prefix of file. e.g. file is `test.txt`, then return `test`.
     Args:
         file_in: = str
             input file, relative path or absolute path.
-        times: = int, default `1`.
-            how many times supposed to chop the string.
         split_symbol: = str, default `.`
             symbol to use to split file name.
+        times: = int, default `1`.
+            how many times supposed to chop the string.
         include_path: = boolean, default `True`
             set to include path in output.
+        deprecated parameter:
         seq: = boolean, default `False`
             set to indicate input file is gzipped FASTA
     Returns:
@@ -224,12 +199,12 @@ def remove_suffix(file_in: str = None, times: int = 1,
     # check_file_exist(file_in)  # still get the prefix even file is not exist
     file_in = os.path.abspath(file_in)
     # return re.sub('.\d.fq.gz|.\d.fa.*.gz|.\d.fa.*|.\d.fq', '', file_in)
-    if seq: return re.sub('.\d.fq.gz|.\d.fa.*|.\d.fq', '', file_in)
+    # if seq: return re.sub('.\d.fq.gz|.\d.fa.*|.\d.fq', '', file_in) # can use para times=2 to control?-Jie-20230215
     file_in = file_in.split(split_symbol)
     file_in = split_symbol.join(file_in[0:len(file_in) - times])
     return include_path and file_in or os.path.basename(file_in)
 
-
+# TODO
 def get_file_path(*files_in):
     """
     Get absolute path of input and return.
@@ -243,7 +218,7 @@ def get_file_path(*files_in):
     final_paths = [os.path.dirname(os.path.abspath(fl)) for fl in files_in]
     return len(final_paths) == 1 and final_paths[0] or final_paths
 
-
+# TODO
 def open_file(file_in: str = None):
     """
     Open a file and return a file handle.
@@ -256,7 +231,7 @@ def open_file(file_in: str = None):
     """
     return '.gz' in file_in and gzip.open(file_in, 'rt') or open(file_in, 'r')
 
-
+# TODO
 def find_file(dr: str = None, suffix='fa'):
     """
     Find files with specified suffix.
@@ -270,7 +245,7 @@ def find_file(dr: str = None, suffix='fa'):
     """
     return [dr + '/' + fl for fl in os.listdir(dr) if fl.endswith(suffix)]
 
-
+# TODO
 def parse_json(json_in):
     """
     Parse json file. (It really depends on how deep the json file is).
