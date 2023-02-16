@@ -10,10 +10,10 @@ import os
 import sys
 import gzip
 from loguru import logger
+import pandas as pd
 
 from re import findall, match
-from .biosys import open_file, remove_suffix
-
+from .biosys import open_file, remove_suffix, check_file
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
 # add chop_comment part by jlli6t
@@ -62,7 +62,6 @@ def iterator(fh, chop_comment: bool = False):
                 yield name, seq, None  # yield a fasta record instead
                 break
 
-
 def fq2fa(infq, out_fa: str = 'test'):
     """
     Convert FASTQ to FASTA format.
@@ -75,91 +74,86 @@ def fq2fa(infq, out_fa: str = 'test'):
     Results:
         Generate a FASTA file.
     """
-
+    check_file(infq, check_empty=True)
     fh = open_file(infq)
     with open(out_fa, 'w') as outf:
         for t, seq, _ in iterator(fh):
             outf.write(f'>{t}\n{seq}\n')
     fh.close()
 
-
-def count_gc(string):
+# TODO: test the code
+def count_symbol(string, symbol:str = 'GC', ignore_case: bool = True, 
+                seperate_symbol: bool = True):
     """
-    Count GC number in a string.
+    Count specified symbol in a string.
     Args:
-        string: str
+        in_string: str
             input string. Usually it is a sequence.
+        symbol: str, default is `GC`
+            symbol to count in string.
+        ignore_case: boolean, default is `True`
+            set to ignore case of letters, both in string and symbol.
+        seperate_symbol: boolean, default is `True`
+            set to seperate specified symbol when count. 
+            e.g. When specified symbol is 'GC', 
+            the func will return number of G+C if `seperate_symbol=True`, 
+            otherwise return number of GC.
 
     Returns:
-        number of G and C in a given string.
+        number of specified symbol in a given string.
     """
-    string = string.upper()
-    return string.count('G') + string.count('C')
+    if ignore_case: string, symbol = string.upper(), symbol.upper()
+    count = 0
+    if seperate_symbol:
+        symbol = list(symbol)
+        if len(set(symbol)) < len(symbol):
+            logger.error(f'Repeat symbols in {symbol}.')
+            sys.exit()
+        count = 0
+        for s in symbol:
+            count += string.count(s)
+        return count
+    else:
+        return string.count(symbol)
 
-
-def seq2dict(inseq: str, min_len: int = 0, qual: bool = False,
-             returns: str = 'seq'):
-    # (DEPRECATED) return_seq: bool = False,
-    # (DEPRECATED) return_gc: bool = False,
-    # (DEPRECATED) return_len: bool = False,
-    # (DEPRECATED) return_qual: bool = False
-
+# TODO: test the code and also the SPEED.
+def seq2dict(inseq: str, sequence: bool = True, length: bool = True, 
+            gc: bool = True, qual: bool = False, dataframe: bool = False):
     """
     Read sequences file into dict with sequence id as key and specified value.
     Args:
         inseq: FILE
             input FASTA/FASTQ (.gz) file.
-        min_len: int, default `0`.
-            minimum sequence length to retain.
-        qual: boolean, default `False`.
-            set to output qual, together with the other specified feature
-            in returns, separated using ','.
-        returns: str, default `seq`
-            what to return. [seq, gc, len, qual].
-            If set both seq and qual, then 'seq,qual' will be the value of dict.
-
-        # below functions are DEPRECATED.
-        # (DEPRECATED) return_seq := boolean, default `False`.
-        #    set to return sequence as value of dict.
-        # (DEPRECATED) return_gc := boolean, default `False`.
-        #    set to return gc ratio of sequence as value of dict.
-        # (DEPRECATED) return_len := boolean, default `False`.
-        #    set to return length of sequence as value of dict.
-        # (DEPRECATED) return_qual := boolean, default `False`
-        #    set to return quality line as value of dict.
+        sequence: bool, default is `True`
+            set to output sequence.
+        length: boolean, default is 'True'
+            set to output length of each sequence.
+        gc: boolean, default is `True`
+            set to output gc of each sequence.
+        qual: boolean, default is `False`.
+            set to output qual,
+        dataframe: boolean, default is `False`.
+            set to convert dict to dataframe before return.
 
     Returns:
-        a dict, sequence id as key.
+        a dataframe with sequence id as the first column.
     """
-
     seq_dict = {}
+    check_file(inseq, check_empty=True)
     fh = open_file(inseq)
+    if sequence:seq_dict['sequence'] = {}
+    if length:seq_dict['length'] = {}
+    if gc:seq_dict['gc'] = {}
+    if qual:seq_dict['qual'] = {}
+
     for t, seq, _ in iterator(fh):
-        if len(seq) < min_len: continue
-        if returns == 'seq':
-            seq_dict[t] = seq
-            if qual: seq_dict[t] = f'{seq_dict[t]},{_}'
-            continue
-        if returns == 'gc':
-            seq_dict[t] = count_gc(seq)
-            continue
-        if returns == 'len':
-            seq_dict[t] = len(seq)
-            continue
-        if returns == 'qual':
-            seq_dict[t] = _
-            continue
-
-        # seq_dict[t] = []
-        # if return_seq: seq_dict[t].append(seq)
-        # if return_gc: seq_dict[t].append(count_gc(seq))
-        # if return_len: seq_dict[t].append(len(seq))
-        # if return_qual: seq_dict[t].append(_)
-        # seq_dict[t] = ','.join(seq_dict[t])  # can not join as int values.
-
+        if sequence:seq_dict['sequence'][t] = seq
+        if length:seq_dict['length'][t] = len(seq)
+        if gc:seq_dict['gc'][t] = count_symbol(seq, symbol='GC', seperate_symbol=True)
+        if qual:seq_dict['qual'][t] = _
     fh.close()
+    if dataframe:return pd.DataFrame.from_dict(seq_dict)
     return seq_dict
-
 
 def assess_genome(genome, min_len: int = 500):
     """
@@ -175,15 +169,16 @@ def assess_genome(genome, min_len: int = 500):
         maximal contig length, minimal contig length, gap number,
         N number, gc ratio].
     """
+    check_file(genome)
     fh = open_file(genome)
     n, gap, gc, ctg_num, ctg_len, n50 = 0, 0, 0, 0, [], None
     for t, seq, _ in iterator(fh):
         if len(seq) < min_len: continue
         ctg_num += 1
         ctg_len.append(len(seq))
-        gap += len(findall('N+', seq))
+        gap += len(findall('N+', seq))  # to test the findall function.
         n += seq.count('N')
-        gc += count_gc(seq)
+        gc += count_symbol(seq, symbol='GC', seperate_symbol=True)
 
     genome_size = sum(ctg_len)
     gc = round(gc/genome_size*100., 2)
@@ -196,6 +191,7 @@ def assess_genome(genome, min_len: int = 500):
     return [genome_size, ctg_num, n50, max(ctg_len), min(ctg_len), gap, n, gc]
 
 
+# TODO: to check the code is necessory
 def select_seq_len(inseq=None, outseq=None,
                    max_len: int = 0, min_len: int = 0,
                    rm_longest_percent: float = 0,
@@ -251,8 +247,8 @@ def select_seq_len(inseq=None, outseq=None,
                 outf.write(f'>{t}\n{seq}\n')
     fh.close()
 
-
-def split_fasta(in_fa: str, out_fa: str, symbol: str = 'N', exact: bool = True):
+# TODO: test the code
+def split_seq(in_fa: str, out_fa: str, symbol: str = 'N', exact: bool = True):
     """
     Split sequences according to specified symbol. Such as Ns.
     Args:
@@ -268,7 +264,7 @@ def split_fasta(in_fa: str, out_fa: str, symbol: str = 'N', exact: bool = True):
             program will not recognize NNN or NNNN as a split site.
 
     Results:
-        Output split sequences into FILE specified from out_fa.
+        Output split sequences into specified out_fa FILE.
     """
     symbol_len = len(symbol)
     symbol += '+'  # make a 're' match to indicate one or more symbol
@@ -306,6 +302,7 @@ def split_fasta(in_fa: str, out_fa: str, symbol: str = 'N', exact: bool = True):
     fh.close()
 
 
+# TODO: to check if the code is necessary.
 def sort_pe_fq(infq1: str, infq2: str, outdir=None):
     """
     Order pair-end FASTQ files to make fq1 & fq2 in same order.
