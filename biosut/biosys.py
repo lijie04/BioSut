@@ -8,7 +8,6 @@ The :mod:`biosut.biosys` includes system functions.
 
 import os
 import sys
-import re
 import gzip
 import subprocess as sp
 from loguru import logger
@@ -101,27 +100,27 @@ def check_path(*paths_in, check_empty: bool = False, mkdir: bool = False):
                 sys.exit()
     return len(final_paths) == 1 and final_paths[0] or final_paths
 
-# TODO
-def real_path(*paths):
-    """
-    Get real path, soft links will be converted to solid destination path.
-    Args:
-        *paths: str (s)
-            input path (s).
-    Returns:
-        return real path as a string or path (s) as a list.
+# deprecated
+#def real_path(*paths):
+#    """
+#    Get real path, soft links will be converted to solid destination path.
+#    Args:
+#        *paths: str (s)
+#            input path (s).
+#    Returns:
+#        return real path as a string or path (s) as a list.
 
-    Examples:
-        >>> from biosut.biosys import real_path
-        >>> a = './../bucket'
-        >>> b = '/usr/bin/python'
-        >>> c = 'aaa -> ../../aaa' # this is a soft link
-        >>> result = real_path(a, b, c)
-        >>> print(result)
-        ['/path/to/../bucket', '/usr/bin/python', '/path/to/../../aaa']
-    """
-    final_paths = [os.path.realpath(pth) for pth in paths]
-    return len(final_paths) == 1 and final_paths[0] or final_paths
+#    Examples:
+#        >>> from biosut.biosys import real_path
+#        >>> a = './../bucket'
+#        >>> b = '/usr/bin/python'
+#        >>> c = 'aaa -> ../../aaa' # this is a soft link
+#        >>> result = real_path(a, b, c)
+#        >>> print(result)
+#        ['/path/to/../bucket', '/usr/bin/python', '/path/to/../../aaa']
+#    """
+#    final_paths = [os.path.realpath(pth) for pth in paths]
+#    return len(final_paths) == 1 and final_paths[0] or final_paths
 
 def find_db(db_v: str):
     """
@@ -204,21 +203,20 @@ def remove_suffix(file_in: str = None, split_symbol: str = '.',
     file_in = split_symbol.join(file_in[0:len(file_in) - times])
     return include_path and file_in or os.path.basename(file_in)
 
-# TODO
-def get_file_path(*files_in):
-    """
-    Get absolute path of input and return.
-    Args:
-        *files_in: str
-            input file (s), could be gzipped.
+# deprecated
+#def get_file_path(*files_in):
+#    """
+#    Get absolute path of input and return.
+#    Args:
+#        *files_in: str
+#            input file (s), could be gzipped.
 
-    Returns:
-        absolute path (s) of the input file (s).
-    """
-    final_paths = [os.path.dirname(os.path.abspath(fl)) for fl in files_in]
-    return len(final_paths) == 1 and final_paths[0] or final_paths
+#    Returns:
+#        absolute path (s) of the input file (s).
+#    """
+#   final_paths = [os.path.dirname(os.path.abspath(fl)) for fl in files_in]
+#   return len(final_paths) == 1 and final_paths[0] or final_paths
 
-# TODO
 def open_file(file_in: str = None):
     """
     Open a file and return a file handle.
@@ -231,63 +229,15 @@ def open_file(file_in: str = None):
     """
     return '.gz' in file_in and gzip.open(file_in, 'rt') or open(file_in, 'r')
 
-# TODO
-def find_file(dr: str = None, suffix='fa'):
+def list_file(dr: str = None, suffix: str = 'fa'):
     """
-    Find files with specified suffix.
+    Find and list files with specified suffix.
     Args:
         dr: = str
             input direcotry for finding files.
-        suffix: = `fa`
+        suffix: str. file with suffix to list, default is 'fa'.
 
     Returns:
         a list of found files with full path.
     """
     return [dr + '/' + fl for fl in os.listdir(dr) if fl.endswith(suffix)]
-
-# TODO
-def parse_json(json_in):
-    """
-    Parse json file. (It really depends on how deep the json file is).
-    Args:
-        json_in: str
-            input json format file.
-
-    Returns:
-        return a string but formatted like a dataframe.
-    """
-    import json
-    fh = open(json_in)
-    # with open(json_in) as fp:
-    # out.write('Head line.\n')
-    json_file = json.load(fh)
-    # out_df = pd.DataFrame(index=None, columns=None)
-    out_st_df = ''
-    n0 = json_file['name']
-    for cld1 in json_file['children']:
-        n1 = cld1['name']
-        for cld2 in cld1['children']:
-            n2 = cld2['name']
-            for cld3 in cld2['children']:
-                n3 = cld3['name']  # "ko01000" is strange. what this for?
-                if 'children' not in cld3:
-                    # out.write(f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n')
-                    # out.write(f'{n0}\t{n1}\t{n2}\t{n3}\n')
-                    # out_df.append(pd.DataFrame([n0, n1, n2, n3]).T)
-                    out_st_df += f'{n0}\t{n1}\t{n2}\t{n3}\n'
-                else:
-                    # print(cld3)
-                    for cld4 in cld3['children']:
-                        n4 = cld4['name']
-                        if 'children' not in cld4:
-                            out_st_df += f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\n'
-                        else:
-                            for cld5 in cld4['children']:
-                                n5 = cld5['name']
-                                if 'children' not in cld5:
-                                    out_st_df += f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\n'
-                                else:
-                                    for cld6 in cld5['children']:
-                                        n6 = cld6['name']
-                                        out_st_df += f'{n0}\t{n1}\t{n2}\t{n3}\t{n4}\t{n5}\t{n6}\n'
-    return out_st_df
