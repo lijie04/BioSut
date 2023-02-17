@@ -8,7 +8,6 @@ The :mod:`biosut.biosys` includes system functions.
 
 import os
 import sys
-import gzip
 import subprocess as sp
 from loguru import logger
 
@@ -227,6 +226,7 @@ def open_file(file_in: str = None):
     Returns:
         return a file handle.
     """
+    import gzip
     return '.gz' in file_in and gzip.open(file_in, 'rt') or open(file_in, 'r')
 
 def list_file(dr: str = None, suffix: str = 'fa'):
