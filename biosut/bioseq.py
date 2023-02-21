@@ -16,7 +16,7 @@ from re import findall, match
 from .biosys import open_file, remove_suffix, check_file
 
 # copy-and-paste from https://github.com/lh3/readfq/blob/master/readfq.py
-# add chop_comment part by jlli6t
+# add chop_comment part by Jie Li
 def iterator(fh, chop_comment: bool = False):
     """
     Sequence iterator.
@@ -103,7 +103,6 @@ def count_symbol(string, symbol:str = 'GC', ignore_case: bool = True,
         number of specified symbol in a given string.
     """
     if ignore_case: string, symbol = string.upper(), symbol.upper()
-    count = 0
     if seperate_symbol:
         symbol = list(symbol)
         if len(set(symbol)) < len(symbol):
@@ -190,62 +189,61 @@ def assess_genome(genome, min_len: int = 500):
         while sum_len >= genome_size*0.5: n50 = leng
     return [genome_size, ctg_num, n50, max(ctg_len), min(ctg_len), gap, n, gc]
 
-
 # TODO: to check the code is necessory
-def select_seq_len(inseq=None, outseq=None,
-                   max_len: int = 0, min_len: int = 0,
-                   rm_longest_percent: float = 0,
-                   rm_shortest_percent: float = 0,
-                   output_qual: bool = False):
-    """
-    Select sequences according the length.
-    Args:
-        inseq: FILE
-            input FASTA/Q (.gz) file
-        outseq: FILE
-            output sequence file name.
-        max_len:= int, default `0`.
-            maximal length of sequence to keep, 0 means keep all.
-        min_len:= int, default `0`.
-            minimal length of sequence to keep, 0 means keep all.
-        rm_longest_percent:= float, default `0.0`.
-            longest n% sequences will be excluded. 0 means keep all.
-        rm_shortest_percent:= float, default `0.0`.
-            shortest n% sequences will be excluded. 0 means keep all.
-        output_qual:= bool, default `False`.
-            set to output quality line as well.
+#def select_seq_len(inseq=None, outseq=None,
+#                   max_len: int = 0, min_len: int = 0,
+#                   rm_longest_percent: float = 0,
+#                   rm_shortest_percent: float = 0,
+#                   output_qual: bool = False):
+#    """
+#    Select sequences according the length.
+#    Args:
+#        inseq: FILE
+#            input FASTA/Q (.gz) file
+#        outseq: FILE
+#            output sequence file name.
+#        max_len:= int, default `0`.
+#            maximal length of sequence to keep, 0 means keep all.
+#        min_len:= int, default `0`.
+#            minimal length of sequence to keep, 0 means keep all.
+#        rm_longest_percent:= float, default `0.0`.
+#            longest n% sequences will be excluded. 0 means keep all.
+#        rm_shortest_percent:= float, default `0.0`.
+#            shortest n% sequences will be excluded. 0 means keep all.
+#        output_qual:= bool, default `False`.
+#            set to output quality line as well.
 
-    Results:
-        Generates number trimmed FASTA/Q file.
-    """
-    def cal_percent(inseq_, min_len_, longest_perc, shortest_perc):
-        all_seq_len = list(seq2dict(inseq_, min_len=min_len_).values())
-        all_seq_len.sort(reverse=True)
-        seq_num = len(all_seq_len)
-        long_ = all_seq_len[round(longest_perc * seq_num + 0.5)]
-        short_ = all_seq_len[seq_num - round(shortest_perc * seq_num + 0.5)-1]
-        return long_, short_
+#    Results:
+#        Generates number trimmed FASTA/Q file.
+#    """
+#    def cal_percent(inseq_, min_len_, longest_perc, shortest_perc):
+#        all_seq_len = list(seq2dict(inseq_, min_len=min_len_).values())
+#        all_seq_len.sort(reverse=True)
+#        seq_num = len(all_seq_len)
+#        long_ = all_seq_len[round(longest_perc * seq_num + 0.5)]
+#        short_ = all_seq_len[seq_num - round(shortest_perc * seq_num + 0.5)-1]
+#        return long_, short_
 
-    if not outseq:
-        logger.error(f'U have to set outseq file.')
-        sys.exit()
+#    if not outseq:
+#        logger.error(f'outseq file is mandatory.')
+#        sys.exit()
 
-    if rm_longest_percent or rm_shortest_percent:
-        long, short = cal_percent(inseq, min_len, rm_longest_percent,
-                                  rm_shortest_percent)
+#    if rm_longest_percent or rm_shortest_percent:
+#        long, short = cal_percent(inseq, min_len, rm_longest_percent,
+#                                 rm_shortest_percent)
 
-    fh = open_file(inseq)
-    with open(outseq, 'w') as outf:
-        for t, seq, qual in iterator(fh):
-            if max_len and len(seq) > max_len: continue
-            if min_len and len(seq) < min_len: continue
-            if rm_longest_percent and len(seq) > long: continue
-            if rm_shortest_percent and len(seq) < short: continue
-            if output_qual:
-                outf.write(f'@{t}\n{seq}\n+\n{qual}\n')
-            else:
-                outf.write(f'>{t}\n{seq}\n')
-    fh.close()
+#    fh = open_file(inseq)
+#    with open(outseq, 'w') as outf:
+#        for t, seq, qual in iterator(fh):
+#            if max_len and len(seq) > max_len: continue
+#            if min_len and len(seq) < min_len: continue
+#            if rm_longest_percent and len(seq) > long: continue
+#            if rm_shortest_percent and len(seq) < short: continue
+#            if output_qual:
+#                outf.write(f'@{t}\n{seq}\n+\n{qual}\n')
+#            else:
+#                outf.write(f'>{t}\n{seq}\n')
+#    fh.close()
 
 # TODO: test the code
 def split_seq(in_fa: str, out_fa: str, symbol: str = 'N', exact: bool = True):
@@ -301,7 +299,6 @@ def split_seq(in_fa: str, out_fa: str, symbol: str = 'N', exact: bool = True):
             out.write(f'>{t}_{c + 1}|len={len(seq) - start}\n{seq[start:]}\n')
     fh.close()
 
-
 # TODO: to check if the code is necessary.
 def sort_pe_fq(infq1: str, infq2: str, outdir=None):
     """
@@ -330,8 +327,8 @@ def sort_pe_fq(infq1: str, infq2: str, outdir=None):
 
     # TODO: fq1 and fq2 should be in same length?
     #  if not, then it is the problem of samtools? Jie, 2021-10-30
-    fq1 = seq2dict(infq1, qual=True)
-    fq2 = seq2dict(infq2, qual=True)
+    fq1 = seq2dict(infq1, qual=True, length=False, gc=False)
+    fq2 = seq2dict(infq2, qual=True, length=False, gc=False)
 
     # print('Reordering fastq sequences id.')
     for sid in fq1.keys():
@@ -341,7 +338,6 @@ def sort_pe_fq(infq1: str, infq2: str, outdir=None):
         fq2_out.write(f'@\n{sid}\n{fq2_seq_qual[0]}\n+\n{fq2_seq_qual[1]}\n')
     fq1_out.close()
     fq2_out.close()
-
 
 def extract_seq(inseq: str = None, idlist: str = None, match_out: str = None,
                 outqual: bool = False, unmatch_out: str = None,
@@ -394,7 +390,7 @@ def extract_seq(inseq: str = None, idlist: str = None, match_out: str = None,
     if match_out: match_out_file.close()
     if unmatch_out: unmatch_out_file.close()
 
-
+# TODO: code too slow
 def trim_headn(inseq: str = None, outseq: str = None, outqual: bool = False):
     """
     Trim N from head of sequence.(Because sequence has N from the start?)
