@@ -10,7 +10,7 @@ __copyright__ = 'Copyright 2018'
 __credits__ = ['Jie Li']
 #__license__ = 'GPL3'  choose the proper open license
 __maintainer__ = ['Jie Li']
-__email__ = 'jeveylijie at gmail.com'
+__email__ = 'jlli6t at gmail.com'
 
 import os
 import sys
@@ -283,7 +283,7 @@ class files:
 				f = os.path.splitext(os.path.basename(f))[0]
 		return f
 
-	def perfect_open(f):
+	def open_file(f):
 		"""
 		Make a perfect open for file
 
