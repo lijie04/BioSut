@@ -6,12 +6,10 @@ The :mod:`biosut.mapper` includes utilities to operate sequence files.
 # License: GPLv3.0
 # Copyright: 2021
 
-
 import os
 from loguru import logger
 from . import biosys as bs
-from . import bamer
-
+from . import bamutil
 
 class Mapper:
     def __init__(self, fq1, fq2, ref, outdir, unfq=None,
@@ -76,7 +74,7 @@ class Mapper:
         bs.exe_cmd(cmd, shell=True)
         logger.info('Finished bowtie2 running.')
         if self.fmt == 'sam': return f'{prefix}.sam'
-        return bamer.sam2bam(f'{prefix}.sam')
+        return bamutil.sam2bam(f'{prefix}.sam')
 
     def bbmap(self):
         """
@@ -97,4 +95,4 @@ class Mapper:
         bs.exe_cmd(cmd, shell=True)
         logger.info('Finished bbmap running.')
         if self.fmt == 'sam': return f'{prefix}.sam'
-        return bamer.sam2bam(f'{prefix}.sam')
+        return bamutil.sam2bam(f'{prefix}.sam')
